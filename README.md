@@ -18,22 +18,6 @@ Data Structure:
 
 Each parking spot is represented by a ParkingSpot struct, which stores the status (0 for available, 1 for reserved) and freeTime (the time in minutes when the spot will become available).
 The segment tree is built from an array of ParkingSpot structs, allowing for efficient range queries and updates.
-Functions:
 
-build(): Initializes the segment tree from the list of parking spots.
-update(): Updates the status and free time of a specific parking spot.
-query(): Returns the number of available spots and the minimum time until the next spot becomes available within a specified range.
-decreaseFreeTime(): Periodically decreases the free time for all reserved spots and updates their availability status when the time reaches zero.
-Usage:
-Reserve a Spot: When a user reserves a spot, the system updates the status to "reserved" and sets the free time according to the user's reservation.
-Check Availability: Users can check if parking spots are available, and if none are available, the system informs them of when the next spot will become free.
-Real-time Updates: The system continuously updates the free times of reserved spots, making it easy for users to see when a spot will become available.
-Example:
-The system initializes with 5 parking spots. Some spots are available, and others are reserved for specific durations (e.g., 5 or 10 minutes).
-The system can query the number of available spots and the minimum time for a spot to become available.
-It simulates time passing, updating the free time for reserved spots every second (each second represents one minute in real-time).
-Future Enhancements:
-Add a user interface for customers to easily reserve spots and check availability.
-Extend the system to support multiple parking lots and manage reservations across different locations.
 Integrate the system with hardware sensors for real-time monitoring of parking spot occupancy.
 This smart parking solution is ideal for modern parking lots that need efficient management of limited parking spots and real-time information for customers.
