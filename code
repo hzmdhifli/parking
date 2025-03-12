@@ -1,15 +1,18 @@
 #include <bits/stdc++.h>
-/*#include <iostream>
-#include <vector>
-#include <climits>  // For INT_MAX
-#include <chrono>
-#include <thread>*/
-
 using namespace std;
 
+// Structure to represent a parking spot
 struct ParkingSpot {
-    int status;  // 0 for available, 1 for reserved
-    int freeTime; // Time (in minutes) when this spot becomes available
+    int status;  
+    int freeTime; 
+    string licensePlate; 
+};
+
+struct Car {
+    string licensePlate;
+    int arrivalTime;
+    int parkingDuration;
+    int spotIndex; 
 };
 
 class SegmentTree {
@@ -17,29 +20,25 @@ public:
     SegmentTree(int n) {
         this->n = n;
         spots.resize(n);
-        tree.resize(2 * n, {0, INT_MAX});  // {status, freeTime} default: available and max time
+        tree.resize(2 * n, {0, INT_MAX, ""});  
     }
 
-    // Build the segment tree from the initial parking spots
     void build(const vector<ParkingSpot>& parkingSpots) {
         for (int i = 0; i < n; i++) {
-            spots[i] = parkingSpots[i];  // Store the original parking spots
-            tree[n + i] = parkingSpots[i];  // Leaf nodes
+            spots[i] = parkingSpots[i];  
+            tree[n + i] = parkingSpots[i];  
         }
 
-        // Build the tree by calculating availability and minimum free time
         for (int i = n - 1; i > 0; --i) {
             tree[i].status = tree[2 * i].status + tree[2 * i + 1].status;
             tree[i].freeTime = min(tree[2 * i].freeTime, tree[2 * i + 1].freeTime);
         }
     }
 
-    // Update a parking spot when reserved/freeTime changes
-    void update(int index, int newStatus, int freeTime) {
+    void update(int index, int newStatus, int freeTime, const string& licensePlate = "") {
         index += n;
-        tree[index] = {newStatus, freeTime};
+        tree[index] = {newStatus, freeTime, licensePlate};
 
-        // Update the parent nodes
         for (int i = index / 2; i > 0; i /= 2) {
             tree[i].status = tree[2 * i].status + tree[2 * i + 1].status;
             tree[i].freeTime = min(tree[2 * i].freeTime, tree[2 * i + 1].freeTime);
@@ -55,13 +54,13 @@ public:
 
         while (l < r) {
             if (l % 2 == 1) {
-                available += tree[l].status == 0 ? 1 : 0;
+                if (tree[l].status == 0) available++;
                 minFreeTime = min(minFreeTime, tree[l].freeTime);
                 l++;
             }
             if (r % 2 == 1) {
                 --r;
-                available += tree[r].status == 0 ? 1 : 0;
+                if (tree[r].status == 0) available++;
                 minFreeTime = min(minFreeTime, tree[r].freeTime);
             }
             l /= 2;
@@ -70,13 +69,30 @@ public:
         return {available, minFreeTime};
     }
 
+    int findFirstAvailableSpot() {
+        if (tree[1].status == n) {
+            return -1; 
+        }
+
+        int pos = 1;
+        while (pos < n) {
+            pos *= 2; 
+            if (tree[pos].status == (pos >= n ? 1 : pos - n + 1)) { 
+                pos++; 
+            }
+        }
+        return pos - n;
+    }
+
     // Function to periodically update freeTime
     void decreaseFreeTime() {
         for (int i = 0; i < n; i++) {
-            if (tree[n + i].freeTime > 0) {
+            if (tree[n + i].status == 1 && tree[n + i].freeTime > 0) {
                 tree[n + i].freeTime--;
                 if (tree[n + i].freeTime == 0) {
                     tree[n + i].status = 0;  // Mark the spot as available when time is up
+                    tree[n + i].licensePlate = "";
+                    cout << "Spot " << i << " is now available." << endl;
                 }
             }
         }
@@ -88,35 +104,193 @@ public:
         }
     }
 
+    void displayStatus() {
+        cout << "\n===== PARKING LOT STATUS =====" << endl;
+        cout << "Spot | Status  | Time Left | License Plate" << endl;
+        cout << "-------------------------------" << endl;
+        for (int i = 0; i < n; i++) {
+            cout << setw(4) << i << " | ";
+            cout << setw(7) << (tree[n + i].status == 0 ? "Free" : "Occupied") << " | ";
+            cout << setw(9) << (tree[n + i].status == 0 ? "N/A" : to_string(tree[n + i].freeTime) + " min") << " | ";
+            cout << tree[n + i].licensePlate << endl;
+        }
+
+        // Display overall statistics
+        pair<int, int> stats = query(0, n);
+        cout << "\nTotal spots: " << n << endl;
+        cout << "Available: " << stats.first << endl;
+        cout << "Occupied: " << (n - stats.first) << endl;
+        if (stats.first == 0 && stats.second != INT_MAX) {
+            cout << "Next available in: " << stats.second << " minutes" << endl;
+        }
+        cout << "==============================\n" << endl;
+    }
+
+    // Get the license plate at a specific spot
+    string getLicensePlate(int spotIndex) {
+        if (spotIndex >= 0 && spotIndex < n) {
+            return tree[n + spotIndex].licensePlate;
+        }
+        return "";
+    }
+
 private:
-    vector<ParkingSpot> spots;  // Original parking spots
-    vector<ParkingSpot> tree;   // Segment tree to store {status, freeTime}
+    vector<ParkingSpot> spots;  
+    vector<ParkingSpot> tree;   
     int n;
 };
 
-int main() {
-    int n = 5;  // Number of parking spots
-    vector<ParkingSpot> parkingSpots = {
-        {0, 0}, {1, 5}, {0, 0}, {1, 10}, {0, 0}
-    };
 
-    // Initialize the segment tree
-    SegmentTree segTree(n);
-    segTree.build(parkingSpots);
+class ParkingSimulation {
+public:
+    ParkingSimulation(int numSpots, int simDuration)
+        : numSpots(numSpots), currentTime(0), simDuration(simDuration) {
 
-    // Query the availability and minimum free time for the range [0, 5)
-    pair<int, int> result = segTree.query(0, 5);
-    cout << "Available spots: " << result.first << endl;
-    cout << "Minimum free time: " << result.second << " minutes" << endl;
+        // Initialize parking spots (all available)
+        vector<ParkingSpot> initialSpots(numSpots, {0, 0, ""});
+        parkingSystem = new SegmentTree(numSpots);
+        parkingSystem->build(initialSpots);
 
-    // Simulate periodic updates (decreasing free time by 1 minute every second)
-    cout << "Starting countdown for reserved spots..." << endl;
-    for (int i = 0; i < 10; ++i) {
-        segTree.decreaseFreeTime();
-        result = segTree.query(0, 5);
-        cout << "Available spots: " << result.first << ", Minimum free time: " << result.second << " minutes" << endl;
-        this_thread::sleep_for(chrono::seconds(1));  // Simulate time passing (1 minute = 1 second)
+        // Initialize random generator
+        random_device rd;
+        gen = mt19937(rd());
+        arrivalDist = poisson_distribution<>(2);  
+        durationDist = normal_distribution<>(60.0, 30.0);  
     }
+
+    ~ParkingSimulation() {
+        delete parkingSystem;
+    }
+
+    // Generate a random license plate
+    string generateLicensePlate() {
+        static const char alphanum[] = "SST220K12MVP771011";
+        string plate = "";
+
+        for (int i = 0; i < 3; i++) {
+            plate += alphanum[rand() % 26]; // Letters
+        }
+        plate += "-";
+        for (int i = 0; i < 3; i++) {
+            plate += alphanum[26 + rand() % 10]; // Numbers
+        }
+
+        return plate;
+    }
+
+    // Run the simulation
+    void run() {
+        cout << "Starting parking simulation for " << simDuration << " minutes with "
+             << numSpots << " parking spots..." << endl;
+
+        int timeStep = 10; // Advance time by 10 minutes per iteration
+
+        for (currentTime = 0; currentTime < simDuration; currentTime += timeStep) {
+            cout << "\n== TIME: " << currentTime << " minutes ==" << endl;
+
+            // Process car arrivals
+            processArrivals(timeStep);
+
+            // Process time passing
+            for (int i = 0; i < timeStep; i++) {
+                parkingSystem->decreaseFreeTime();
+            }
+
+            // Display current status
+            parkingSystem->displayStatus();
+
+            // Optional: pause to see the simulation unfold
+            this_thread::sleep_for(chrono::milliseconds(1000));
+        }
+
+        cout << "\nSimulation completed after " << simDuration << " minutes." << endl;
+        // Print statistics
+        printStatistics();
+    }
+
+private:
+    int numSpots;
+    int currentTime;
+    int simDuration;
+    SegmentTree* parkingSystem;
+    vector<Car> parkedCars;
+    vector<Car> departedCars;
+
+    // Random number generation
+    mt19937 gen;
+    poisson_distribution<> arrivalDist;
+    normal_distribution<> durationDist;
+
+    void processArrivals(int timeStep) {
+        // Determine how many cars arrive in this time step
+        int arrivals = arrivalDist(gen);
+
+        cout << arrivals << " cars arriving..." << endl;
+
+        for (int i = 0; i < arrivals; i++) {
+            Car newCar;
+            newCar.licensePlate = generateLicensePlate();
+            newCar.arrivalTime = currentTime;
+
+            newCar.parkingDuration = max(10, min(240, (int)round(durationDist(gen))));
+
+            int spotIndex = parkingSystem->findFirstAvailableSpot();
+
+            if (spotIndex != -1) {
+
+                newCar.spotIndex = spotIndex;
+                parkingSystem->update(spotIndex, 1, newCar.parkingDuration, newCar.licensePlate);
+                parkedCars.push_back(newCar);
+
+                cout << "Car " << newCar.licensePlate << " parked at spot " << spotIndex
+                     << " for " << newCar.parkingDuration << " minutes." << endl;
+            } else {
+                cout << "Car " << newCar.licensePlate << " couldn't find a spot and left." << endl;
+            }
+        }
+
+        // Check for cars that have left
+        auto it = parkedCars.begin();
+        while (it != parkedCars.end()) {
+            if (parkingSystem->getLicensePlate(it->spotIndex) != it->licensePlate) {
+
+                it->parkingDuration = currentTime - it->arrivalTime;
+                departedCars.push_back(*it);
+                it = parkedCars.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    // Print statistics at the end of simulation
+    void printStatistics() {
+        int totalCars = departedCars.size();
+        int totalParkingTime = 0;
+
+        for (const auto& car : departedCars) {
+            totalParkingTime += car.parkingDuration;
+        }
+
+        cout << "\n===== SIMULATION STATISTICS =====" << endl;
+        cout << "Total cars served: " << totalCars << endl;
+        if (totalCars > 0) {
+            cout << "Average parking duration: " << (totalParkingTime / totalCars) << " minutes" << endl;
+        }
+        cout << "Cars still in the lot: " << parkedCars.size() << endl;
+        cout << "=================================" << endl;
+    }
+};
+
+int main() {
+    // Seed for random number generation
+    srand(time(nullptr));
+
+    // Set up the simulation: 10 parking spots, simulation runs for 240 minutes (4 hours)
+    ParkingSimulation simulation(10, 240);
+
+    // Run the simulation
+    simulation.run();
 
     return 0;
 }
