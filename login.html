@@ -9,18 +9,67 @@
             font-family: Arial, sans-serif;
             background-color: #f0f2f5;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
             margin: 0;
+            padding: 120px 20px 100px; /* Espace pour header/footer fixes */
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .login-container {
             background: white;
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 300px;
-            margin-top: -50px;
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+        .products-section {
+            padding: 1rem;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .price {
+            color: #263570;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        .add-to-cart {
+            background-color: #263570;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .add-to-cart:hover {
+            background-color: #1c285a;
         }
         h2 {
             text-align: center;
@@ -196,7 +245,8 @@
             </div>
         </nav>
     </header>
-    <div class="login-container">
+    <div class="main-content">
+        <div class="login-container">
         <h2 data-i18n="loginTitle">Connexion</h2>
         <form>
             <div class="form-group">
@@ -212,6 +262,29 @@
         <div style="text-align: center; margin-top: 1rem;">
             <a href="#" style="color: #263570; text-decoration: none; font-size: 0.9rem;">Mot de passe oublié ?</a>
         </div>
+        <section class="products-section">
+            <h2>Nos Produits Phares</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <img src="https://via.placeholder.com/200x150" alt="Produit 1">
+                    <h3>Haltères Professionnelles</h3>
+                    <p class="price">€89.99</p>
+                    <button class="add-to-cart">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <img src="https://via.placeholder.com/200x150" alt="Produit 2">
+                    <h3>Barre de Musculation</h3>
+                    <p class="price">€149.99</p>
+                    <button class="add-to-cart">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <img src="https://via.placeholder.com/200x150" alt="Produit 3">
+                    <h3>Gants d'entraînement</h3>
+                    <p class="price">€29.99</p>
+                    <button class="add-to-cart">Ajouter au panier</button>
+                </div>
+            </div>
+        </section>
     </div>
     <footer>
         <div class="footer-content">
