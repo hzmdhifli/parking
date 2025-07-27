@@ -80,7 +80,16 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            margin-right: 2rem;
+            margin-right: 1rem;
+        }
+        .lang-selector {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            margin-right: 1rem;
+            cursor: pointer;
         }
         .main-nav {
             background: rgba(255,255,255,0.1);
@@ -164,6 +173,11 @@
     <header class="main-header">
         <nav class="header-nav">
             <div class="logo">Lifters Corner</div>
+            <select class="lang-selector">
+                <option value="fr">FR</option>
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+            </select>
             <div class="search-container">
                 <input type="search" placeholder="Rechercher..." class="search-bar">
                 <button type="submit" class="search-button">🔍</button>
@@ -179,14 +193,14 @@
         </nav>
     </header>
     <div class="login-container">
-        <h2>Connexion</h2>
+        <h2 data-i18n="loginTitle">Connexion</h2>
         <form>
             <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
+                <label for="username" data-i18n="username">Nom d'utilisateur</label>
                 <input type="text" id="username" name="username" required>
             </div>
             <div class="form-group">
-                <label for="password">Mot de passe</label>
+                <label for="password" data-i18n="password">Mot de passe</label>
                 <input type="password" id="password" name="password" required>
             </div>
             <button type="submit">Se connecter</button>
@@ -218,5 +232,65 @@
         </div>
         <p style="margin-top: 1rem;">© 2024 Lifters Corner - Tous droits réservés</p>
     </footer>
+    <script>
+        const translations = {
+            'en': {
+                'loginTitle': 'Login',
+                'username': 'Username',
+                'password': 'Password',
+                'loginButton': 'Sign In',
+                'forgotPassword': 'Forgot password?',
+                'footerAbout': 'About',
+                'footerContact': 'Contact',
+                'footerLegal': 'Legal'
+            },
+            'fr': {
+                'loginTitle': 'Connexion',
+                'username': 'Nom d\'utilisateur',
+                'password': 'Mot de passe',
+                'loginButton': 'Se connecter',
+                'forgotPassword': 'Mot de passe oublié ?',
+                'footerAbout': 'À propos',
+                'footerContact': 'Contact',
+                'footerLegal': 'Légal'
+            },
+            'es': {
+                'loginTitle': 'Conexión',
+                'username': 'Nombre de usuario',
+                'password': 'Contraseña',
+                'loginButton': 'Iniciar sesión',
+                'forgotPassword': '¿Olvidó su contraseña?',
+                'footerAbout': 'Acerca de',
+                'footerContact': 'Contacto',
+                'footerLegal': 'Legal'
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const langSelector = document.querySelector('.lang-selector');
+            
+            // Charger la langue sauvegardée ou utiliser le navigateur par défaut
+            const savedLang = localStorage.getItem('lang') || navigator.language.slice(0,2) || 'fr';
+            langSelector.value = savedLang;
+            updateTexts(savedLang);
+
+            langSelector.addEventListener('change', (e) => {
+                const lang = e.target.value;
+                localStorage.setItem('lang', lang);
+                updateTexts(lang);
+            });
+        });
+
+        function updateTexts(lang) {
+            document.querySelector('h2').textContent = translations[lang].loginTitle;
+            document.querySelector('label[for="username"]').textContent = translations[lang].username;
+            document.querySelector('label[for="password"]').textContent = translations[lang].password;
+            document.querySelector('button[type="submit"]').textContent = translations[lang].loginButton;
+            document.querySelector('.footer-section:nth-child(1) h3').textContent = translations[lang].footerAbout;
+            document.querySelector('.footer-section:nth-child(2) h3').textContent = translations[lang].footerContact;
+            document.querySelector('.footer-section:nth-child(3) h3').textContent = translations[lang].footerLegal;
+            document.querySelector('a[href="#"]').textContent = translations[lang].forgotPassword;
+        }
+    </script>
 </body>
 </html>
