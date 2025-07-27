@@ -63,7 +63,7 @@
         .main-header {
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
             color: white;
-            padding: 1rem;
+            padding: 1rem 1rem 3rem 1rem;
             position: fixed;
             top: 0;
             width: 100%;
@@ -80,6 +80,30 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
+            margin-right: 2rem;
+        }
+        .main-nav {
+            background: rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding: 0.5rem 0;
+        }
+        .main-nav-links {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #c1d8ff;
+            transform: translateY(-2px);
         }
         .search-container {
             display: flex;
@@ -143,6 +167,14 @@
             <div class="search-container">
                 <input type="search" placeholder="Rechercher..." class="search-bar">
                 <button type="submit" class="search-button">🔍</button>
+            </div>
+        </nav>
+        <nav class="main-nav">
+            <div class="main-nav-links">
+                <a href="#" class="nav-link">Home</a>
+                <a href="#" class="nav-link">Boutique</a>
+                <a href="#" class="nav-link">Panier</a>
+                <a href="#" class="nav-link">Compte</a>
             </div>
         </nav>
     </header>
