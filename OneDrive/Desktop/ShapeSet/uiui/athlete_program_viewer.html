@@ -1,0 +1,429 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1.5rem 0}
+.athlete-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.anav{padding:5px 12px;font-size:12px;font-weight:500;border:0.5px solid var(--color-border-secondary);border-radius:20px;cursor:pointer;background:transparent;color:var(--color-text-secondary);transition:all .15s;white-space:nowrap}
+.anav.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.athlete-header{display:flex;align-items:center;gap:14px;margin-bottom:1.25rem}
+.avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0}
+.athlete-name{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.athlete-meta{font-size:13px;color:var(--color-text-secondary);margin-top:2px}
+.note-box{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.5}
+.week-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:1rem}
+.day-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.day-header{padding:8px 12px;display:flex;align-items:center;gap:8px}
+.day-num{font-size:11px;font-weight:500;opacity:.7}
+.day-title{font-size:13px;font-weight:500}
+.day-rest{background:var(--color-background-secondary);opacity:.6}
+.day-rest .day-title{color:var(--color-text-tertiary)}
+.muscles-list{padding:0 12px 12px}
+.muscle-group{margin-top:8px}
+.muscle-tag{display:inline-block;font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;margin-bottom:5px}
+.ex-item{font-size:12px;color:var(--color-text-secondary);padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);line-height:1.4}
+.ex-item:last-child{border-bottom:none}
+.export-btn{margin-top:1rem;padding:8px 18px;font-size:13px;font-weight:500;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);cursor:pointer}
+.export-btn:hover{background:var(--color-background-secondary)}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">Athlete gym program viewer — browse legendary bodybuilder weekly splits with exercises per day</h2>
+<div class="athlete-nav" id="nav"></div>
+<div id="content"></div>
+</div>
+
+<script>
+const muscleColors={
+  Chest:{bg:"#E6F1FB",text:"#0C447C"},Back:{bg:"#E1F5EE",text:"#085041"},
+  Shoulders:{bg:"#EEEDFE",text:"#3C3489"},Traps:{bg:"#EEEDFE",text:"#534AB7"},
+  Biceps:{bg:"#FBEAF0",text:"#72243E"},Triceps:{bg:"#FBEAF0",text:"#993556"},
+  Quads:{bg:"#EAF3DE",text:"#27500A"},Hamstrings:{bg:"#EAF3DE",text:"#3B6D11"},
+  Calves:{bg:"#FAEEDA",text:"#633806"},Glutes:{bg:"#FAEEDA",text:"#854F0B"},
+  Abs:{bg:"#F1EFE8",text:"#5F5E5A"},Arms:{bg:"#FBEAF0",text:"#72243E"},
+  Legs:{bg:"#EAF3DE",text:"#27500A"},Push:{bg:"#E6F1FB",text:"#0C447C"},
+  Pull:{bg:"#E1F5EE",text:"#085041"},Delts:{bg:"#EEEDFE",text:"#3C3489"},
+  "Weak Points":{bg:"#FAEEDA",text:"#633806"}
+};
+function mc(m){return muscleColors[m]||{bg:"#F1EFE8",text:"#5F5E5A"}}
+
+const programs=[
+{
+  id:"arnold",name:"Arnold Schwarzenegger",initials:"AS",color:"#E6F1FB",textColor:"#0C447C",
+  split:"6-day split",
+  note:"Classic antagonistic superset approach — chest & back trained together to maximize blood flow. Each session repeated twice per week.",
+  days:[
+    {label:"Day 1",title:"Chest & Back",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Dips"],
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Weighted Pull-up","Cable Row"]}},
+    {label:"Day 2",title:"Shoulders & Arms",muscles:{
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Bentover Dumbbell Lateral Raise","Barbell Front Raise"],
+      Biceps:["Barbell Preacher Curl","Dumbbell Bicep Curl","EZ Bar Curl","Incline Dumbbell Curl"],
+      Triceps:["Close-grip Bench Press","Skull Crusher","Dumbbell Tricep Extension","Cable Push Down"]}},
+    {label:"Day 3",title:"Legs",muscles:{
+      Quads:["Back Squat","Front Squat","Leg Press","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Stiff Leg Deadlift","Dumbbell Romanian Deadlift"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"Day 4",title:"Chest & Back",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Pec Deck Fly Machine","Barbell Floor Chest Press"],
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Weighted Pull-up","Dumbbell Pullover"]}},
+    {label:"Day 5",title:"Shoulders & Arms",muscles:{
+      Shoulders:["Arnold Dumbbell Press","Dumbbell Lateral Raise","Seated Dumbbell Rear Lateral Raise","Face Pull"],
+      Biceps:["EZ Bar Curl","Dumbbell Hammer Curl","Dumbbell Preacher Curl","Cable Curl"],
+      Triceps:["Skull Crusher","Cable Overhead Tricep Extension","Seated Dumbbell Tricep Extension","Bench Dips"]}},
+    {label:"Day 6",title:"Legs",muscles:{
+      Quads:["Back Squat","Hack Squat Machine","V Squat","Leg Extension"],
+      Hamstrings:["Leg Curl","Seated Leg Curl","Dumbbell Stiff Leg Deadlift","Glute-Ham Raise"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Donkey Kick","Bodyweight Calf Raise"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"ronnie",name:"Ronnie Coleman",initials:"RC",color:"#EAF3DE",textColor:"#27500A",
+  split:"6-day rolling split",
+  note:"Heavy compound movements with extreme volume. Ronnie trained back, biceps & shoulders on the same day to build his legendary width.",
+  days:[
+    {label:"Day 1",title:"Back, Biceps & Shoulders",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Romanian Deadlift"],
+      Biceps:["Barbell Preacher Curl","EZ Bar Curl","Dumbbell Hammer Curl","Cable Curl"],
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Barbell Upright Row","Barbell Shrug"]}},
+    {label:"Day 2",title:"Legs",muscles:{
+      Quads:["Back Squat","Leg Press","Hack Squat Machine","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Glute-Ham Raise"]}},
+    {label:"Day 3",title:"Chest & Triceps",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Pec Deck Fly Machine"],
+      Triceps:["Close-grip Bench Press","Skull Crusher","Cable Push Down","Dumbbell Tricep Extension"]}},
+    {label:"Day 4",title:"Back, Biceps & Shoulders",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Cable Row"],
+      Biceps:["EZ Bar Preacher Curl","Incline Dumbbell Curl","Dumbbell Bicep Curl","Arm Curl Machine"],
+      Shoulders:["Seated Dumbbell Shoulder Press","Dumbbell Shrug","Bentover Dumbbell Lateral Raise","Face Pull"]}},
+    {label:"Day 5",title:"Legs",muscles:{
+      Quads:["Paused Back Squat","V Squat","Leg Press","Barbell Front Rack Lunge"],
+      Hamstrings:["Stiff Leg Deadlift","Seated Leg Curl","Dumbbell Leg Curl","Glute-Ham Raise"]}},
+    {label:"Day 6",title:"Chest & Triceps",muscles:{
+      Chest:["Barbell Bench Press","Barbell Incline Bench Press","Dumbbell Bench Press","Standing Cable Fly"],
+      Triceps:["Close-grip Bench Press","Cable Overhead Tricep Extension","Skull Crusher","Tricep Extension Machine"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"cbum",name:"Chris Bumstead",initials:"CB",color:"#EEEDFE",textColor:"#3C3489",
+  split:"8-day split",
+  note:"CBum's 8-day rotation allows maximum recovery per muscle group. Known for aesthetic symmetry — shoulders and chest get a dedicated co-session.",
+  days:[
+    {label:"Day 1",title:"Calves & Quads",muscles:{
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"],
+      Quads:["Back Squat","Hack Squat Machine","Leg Press","Leg Extension"]}},
+    {label:"Day 2",title:"Chest & Triceps",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Incline Cable Fly","Pec Deck Fly Machine"],
+      Triceps:["Close-grip Bench Press","Cable Push Down","Skull Crusher","Cable Overhead Tricep Extension"]}},
+    {label:"Day 3",title:"Back & Biceps",muscles:{
+      Back:["Trap-bar Deadlift","Romanian Deadlift","Barbell Bent-over Row","Cable Row"],
+      Biceps:["EZ Bar Preacher Curl","Dumbbell Hammer Curl","Incline Dumbbell Curl","Cable Curl"]}},
+    {label:"Day 4",title:"Rest",rest:true},
+    {label:"Day 5",title:"Shoulders & Chest",muscles:{
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Seated Dumbbell Rear Lateral Raise","Arnold Dumbbell Press"],
+      Chest:["Incline Dumbbell Bench Press","Dumbbell Fly","Standing Cable Fly","Dumbbell Squeeze Press"]}},
+    {label:"Day 6",title:"Hamstrings & Back",muscles:{
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Glute-Ham Raise"],
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Dumbbell Romanian Deadlift","Cable Pull Through"]}},
+    {label:"Day 7",title:"Arms",muscles:{
+      Biceps:["EZ Bar Curl","Dumbbell Bicep Curl","Dumbbell Hammer Curl","Dumbbell Preacher Curl"],
+      Triceps:["Skull Crusher","Dumbbell Kickback","Cable Lying Tricep Extension","Tricep Extension Machine"]}},
+    {label:"Day 8",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"jaycutler",name:"Jay Cutler",initials:"JC",color:"#FAEEDA",textColor:"#633806",
+  split:"5-day body-part split",
+  note:"Jay's high-volume body-part split focuses on one or two muscle groups per session. Calves trained with chest to maximize dedicated leg days.",
+  days:[
+    {label:"Day 1",title:"Chest & Calves",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Pec Deck Fly Machine"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"Day 2",title:"Triceps & Biceps",muscles:{
+      Triceps:["Close-grip Bench Press","Skull Crusher","Cable Push Down","Tricep Extension Machine"],
+      Biceps:["Barbell Preacher Curl","EZ Bar Curl","Incline Dumbbell Curl","Arm Curl Machine"]}},
+    {label:"Day 3",title:"Back",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Cable Row"]}},
+    {label:"Day 4",title:"Rest",rest:true},
+    {label:"Day 5",title:"Shoulders & Traps",muscles:{
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Barbell Front Raise","Seated Dumbbell Rear Lateral Raise"],
+      Traps:["Barbell Shrug","Dumbbell Shrug","Barbell Upright Row","Smith Machine Shrug"]}},
+    {label:"Day 6",title:"Quads, Hams & Calves",muscles:{
+      Quads:["Back Squat","Leg Press","Hack Squat Machine","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Stiff Leg Deadlift"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Seated Single Leg Leg Curl","Bodyweight Calf Raise"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"philheath",name:"Phil Heath",initials:"PH",color:"#FAECE7",textColor:"#712B13",
+  split:"FST-7 split",
+  note:"FST-7 (Fascia Stretch Training) ends each session with 7 sets of a stretching exercise. Phil trains heavy compounds first then FST-7 isolation finishers.",
+  days:[
+    {label:"Day 1",title:"Legs",muscles:{
+      Quads:["Back Squat","Leg Press","Hack Squat Machine","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Glute-Ham Raise"]}},
+    {label:"Day 2",title:"Chest & Triceps",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Pec Deck Fly Machine","Low-pulley Cable Fly"],
+      Triceps:["Close-grip Bench Press","Skull Crusher","Cable Push Down","Cable Overhead Tricep Extension"]}},
+    {label:"Day 3",title:"Rest",rest:true},
+    {label:"Day 4",title:"Back & Biceps",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Romanian Deadlift"],
+      Biceps:["EZ Bar Preacher Curl","Dumbbell Hammer Curl","Incline Dumbbell Curl","Cable Curl"]}},
+    {label:"Day 5",title:"Shoulders & Traps",muscles:{
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Lateral Raise Machine","Seated Dumbbell Rear Lateral Raise"],
+      Traps:["Barbell Shrug","Dumbbell Shrug","Barbell Upright Row","Shrug Machine"]}},
+    {label:"Day 6",title:"Touch-up / Weak Points",muscles:{
+      "Weak Points":["Leg Extension","Incline Dumbbell Fly","Cable Lateral Raise","Preacher Curl Machine"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"tomplatz",name:"Tom Platz",initials:"TP",color:"#EAF3DE",textColor:"#27500A",
+  split:"Leg-dominant routine",
+  note:"The 'Quadzilla' trained legs with unmatched brutality. One extreme-volume leg session followed by full recovery — quality over frequency.",
+  days:[
+    {label:"Day 1",title:"Legs — Heavy Volume",muscles:{
+      Quads:["Back Squat","Hack Squat Machine","Barbell Hack Squat","Leg Extension"],
+      Hamstrings:["Leg Curl","Seated Leg Curl","Romanian Deadlift","Glute-Ham Raise"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"Day 2",title:"Rest",rest:true},{label:"Day 3",title:"Rest",rest:true},
+    {label:"Day 4",title:"Rest",rest:true},{label:"Day 5",title:"Rest",rest:true},
+    {label:"Day 6",title:"Rest",rest:true},{label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"mikementzer",name:"Mike Mentzer",initials:"MM",color:"#F1EFE8",textColor:"#444441",
+  split:"Heavy Duty — 4-workout rotation",
+  note:"Not a weekly plan. Rest 4+ days between sessions. Pre-exhaustion principle: isolation before compound to fully fatigue the target muscle.",
+  days:[
+    {label:"W1",title:"Chest & Back",muscles:{
+      Chest:["Pec Deck Fly Machine","Barbell Incline Bench Press","Incline Dumbbell Fly","Barbell Bench Press"],
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Paused Deadlift"]}},
+    {label:"W2",title:"Legs",muscles:{
+      Quads:["Leg Extension","Back Squat","Leg Press","Paused Back Squat"],
+      Hamstrings:["Leg Curl","Romanian Deadlift","Stiff Leg Deadlift","Glute-Ham Raise"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"W3",title:"Delts & Arms",muscles:{
+      Delts:["Dumbbell Lateral Raise","Overhead Press","Lateral Raise Machine","Arnold Dumbbell Press"],
+      Biceps:["EZ Bar Curl","Barbell Preacher Curl","Cable Curl","Dumbbell Bicep Curl"],
+      Triceps:["Cable Push Down","Skull Crusher","Dumbbell Tricep Extension","Cable Overhead Tricep Extension"]}},
+    {label:"W4",title:"Legs — Static Focus",muscles:{
+      Quads:["Leg Extension","Back Squat","Barbell Box Squat","V Squat"],
+      Hamstrings:["Seated Leg Curl","Leg Curl","Dumbbell Leg Curl","Glute-Ham Raise"]}}
+  ]
+},
+{
+  id:"franco",name:"Franco Columbu",initials:"FC",color:"#FBEAF0",textColor:"#72243E",
+  split:"14-day cycle",
+  note:"Franco's 14-day cycle pairs opposing muscles for density. The double-slash '//' means both are trained in one session on alternating circuits.",
+  days:[
+    {label:"Day 1",title:"Chest, Shoulders, Abs + Arms",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Pec Deck Fly Machine"],
+      Shoulders:["Overhead Press","Arnold Dumbbell Press","Dumbbell Lateral Raise","Barbell Shrug"],
+      Abs:["Hanging Leg Raise","Crunch","Plank","Reverse Crunch"],
+      Arms:["EZ Bar Curl","Close-grip Bench Press","Dumbbell Hammer Curl","Skull Crusher"]}},
+    {label:"Day 2",title:"Back + Legs",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Romanian Deadlift"],
+      Legs:["Back Squat","Leg Press","Leg Curl","Standing Calf Raise"]}},
+    {label:"Day 3",title:"Chest, Shoulders, Abs + Arms",muscles:{
+      Chest:["Barbell Incline Bench Press","Dumbbell Bench Press","Standing Cable Fly","Weighted Dips"],
+      Shoulders:["Seated Dumbbell Shoulder Press","Dumbbell Upright Row","Bentover Dumbbell Lateral Raise","Face Pull"],
+      Abs:["V-up","Leg Raise","Air Bicycle Abs","Side Plank"],
+      Arms:["EZ Bar Preacher Curl","Seated Dumbbell Tricep Extension","Incline Dumbbell Curl","Cable Lying Tricep Extension"]}},
+    {label:"Day 4",title:"Arms",muscles:{
+      Biceps:["Barbell Preacher Curl","EZ Bar Curl","Dumbbell Hammer Curl","Incline Dumbbell Curl"],
+      Triceps:["Close-grip Bench Press","Skull Crusher","Cable Push Down","Tricep Extension Machine"]}},
+    {label:"Day 5",title:"Legs & Abs + Back",muscles:{
+      Legs:["Back Squat","Romanian Deadlift","Leg Press","Hack Squat Machine"],
+      Abs:["Hanging Leg Raise","Abs Roll Out","Plank","V-up"],
+      Back:["Conventional Deadlift","Romanian Deadlift","Barbell Bent-over Row","Trap-bar Deadlift"]}},
+    {label:"Day 6",title:"Chest, Shoulders & Abs",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Dips"],
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Arnold Dumbbell Press","Seated Dumbbell Rear Lateral Raise"],
+      Abs:["Crunch","Hanging Knee Raise","Side Crunch","Decline Sit Up"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"dexter",name:"Dexter Jackson",initials:"DJ",color:"#E6F1FB",textColor:"#0C447C",
+  split:"Machine-focused split",
+  note:"The 'Blade' relied heavily on machines for precise muscle targeting and joint longevity. His program reflects a smart, sustainable approach to bodybuilding.",
+  days:[
+    {label:"Day 1",title:"Chest & Abs",muscles:{
+      Chest:["Chest Press Machine","Pec Deck Fly Machine","Incline Chest Press Machine","Decline Chest Press Machine"],
+      Abs:["Abdominal Crunch Machine","Hanging Leg Raise","Abs Roll Out","Crunch"]}},
+    {label:"Day 2",title:"Back",muscles:{
+      Back:["Trap-bar Deadlift","Romanian Deadlift","Conventional Deadlift","Cable Row"]}},
+    {label:"Day 3",title:"Legs & Abs",muscles:{
+      Quads:["Leg Press","Leg Extension","Hack Squat Machine","Single Leg Leg Press"],
+      Hamstrings:["Leg Curl","Seated Leg Curl","Single Leg Leg Curl","Glute-Ham Raise"],
+      Abs:["Abdominal Hip Thrust","Reverse Crunch","Crunch","Plank"]}},
+    {label:"Day 4",title:"Rest",rest:true},
+    {label:"Day 5",title:"Shoulders & Traps",muscles:{
+      Shoulders:["Shoulder Press Machine","Lateral Raise Machine","Reverse Pec Deck Fly Machine","Seated Dumbbell Rear Lateral Raise"],
+      Traps:["Shrug Machine","Smith Machine Shrug","Dumbbell Shrug","Barbell Upright Row"]}},
+    {label:"Day 6",title:"Arms & Abs",muscles:{
+      Biceps:["Preacher Curl Machine","Arm Curl Machine","Cable Curl","Cable Hammer Curl"],
+      Triceps:["Tricep Extension Machine","Cable Push Down","Cable Overhead Tricep Extension","Seated Dips Machine"],
+      Abs:["Abdominal Crunch Machine","Side Crunch","Hanging Knee Raise","Air Bicycle Abs"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"flex",name:"Flex Wheeler",initials:"FW",color:"#E1F5EE",textColor:"#085041",
+  split:"6-day split",
+  note:"The 'Sultan of Symmetry' trained one muscle group per day with intense focus. His physique was defined by balance and proportional perfection.",
+  days:[
+    {label:"Day 1",title:"Chest",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Pec Deck Fly Machine"]}},
+    {label:"Day 2",title:"Back",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Romanian Deadlift"]}},
+    {label:"Day 3",title:"Legs",muscles:{
+      Quads:["Back Squat","Leg Press","Hack Squat Machine","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Glute-Ham Raise"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"Day 4",title:"Rest",rest:true},
+    {label:"Day 5",title:"Shoulders",muscles:{
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Arnold Dumbbell Press","Seated Dumbbell Rear Lateral Raise"]}},
+    {label:"Day 6",title:"Arms",muscles:{
+      Biceps:["EZ Bar Curl","Dumbbell Bicep Curl","Dumbbell Hammer Curl","Barbell Preacher Curl"],
+      Triceps:["Skull Crusher","Cable Push Down","Close-grip Bench Press","Dumbbell Tricep Extension"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"ramon",name:"Ramon Dino",initials:"RD",color:"#FAEEDA",textColor:"#633806",
+  split:"5-day bro split",
+  note:"Classic Physique champion Ramon Dino runs a bro-style split with light repetition days to maintain aesthetic conditioning without overtraining.",
+  days:[
+    {label:"Day 1",title:"Chest & Triceps",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Pec Deck Fly Machine","Dips"],
+      Triceps:["Close-grip Bench Press","Skull Crusher","Cable Push Down","Dumbbell Tricep Extension"]}},
+    {label:"Day 2",title:"Legs & Biceps",muscles:{
+      Legs:["Back Squat","Leg Press","Romanian Deadlift","Leg Curl"],
+      Biceps:["EZ Bar Curl","Dumbbell Bicep Curl","Dumbbell Hammer Curl","Barbell Preacher Curl"]}},
+    {label:"Day 3",title:"Rest",rest:true},
+    {label:"Day 4",title:"Chest & Triceps — Light",muscles:{
+      Chest:["Incline Dumbbell Bench Press","Standing Cable Fly","Incline Cable Fly","Dumbbell Fly"],
+      Triceps:["Cable Overhead Tricep Extension","Cable Lying Tricep Extension","Tricep Extension Machine","Dumbbell Kickback"]}},
+    {label:"Day 5",title:"Back & Shoulders",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Romanian Deadlift"],
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Arnold Dumbbell Press","Barbell Shrug"]}},
+    {label:"Day 6",title:"Rest",rest:true},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"jeffseid",name:"Jeff Seid",initials:"JS",color:"#FBEAF0",textColor:"#72243E",
+  split:"5-day split",
+  note:"Jeff Seid's men's physique split emphasizes chest, shoulders and arms for the V-taper look. Back and legs get dedicated full sessions.",
+  days:[
+    {label:"Day 1",title:"Chest & Calves",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Standing Cable Fly"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"Day 2",title:"Back",muscles:{
+      Back:["Conventional Deadlift","Barbell Bent-over Row","Trap-bar Deadlift","Romanian Deadlift"]}},
+    {label:"Day 3",title:"Rest",rest:true},
+    {label:"Day 4",title:"Legs",muscles:{
+      Quads:["Back Squat","Leg Press","Hack Squat Machine","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Stiff Leg Deadlift"]}},
+    {label:"Day 5",title:"Arms & Calves",muscles:{
+      Biceps:["EZ Bar Curl","Dumbbell Hammer Curl","Incline Dumbbell Curl","Preacher Curl Machine"],
+      Triceps:["Skull Crusher","Cable Push Down","Tricep Extension Machine","Dumbbell Tricep Extension"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Bodyweight Calf Raise","Seated Single Leg Leg Curl"]}},
+    {label:"Day 6",title:"Shoulders",muscles:{
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Arnold Dumbbell Press","Seated Dumbbell Rear Lateral Raise"]}},
+    {label:"Day 7",title:"Rest",rest:true}
+  ]
+},
+{
+  id:"davidlaid",name:"David Laid",initials:"DL",color:"#EEEDFE",textColor:"#534AB7",
+  split:"DUP hybrid PPL",
+  note:"David Laid's DUP (Daily Undulating Periodization) PPL runs 7 days with 2 push, 2 pull, 2 leg sessions — varying rep ranges for strength and hypertrophy.",
+  days:[
+    {label:"Day 1",title:"Push",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Standing Cable Fly","Dumbbell Fly"],
+      Shoulders:["Overhead Press","Dumbbell Lateral Raise","Arnold Dumbbell Press","Landmine Press"],
+      Triceps:["Close-grip Bench Press","Skull Crusher","Cable Push Down","Cable Overhead Tricep Extension"]}},
+    {label:"Day 2",title:"Pull",muscles:{
+      Back:["Conventional Deadlift","Romanian Deadlift","Trap-bar Deadlift","Barbell Bent-over Row"],
+      Biceps:["EZ Bar Curl","Dumbbell Hammer Curl","Incline Dumbbell Curl","Cable Curl"]}},
+    {label:"Day 3",title:"Legs",muscles:{
+      Quads:["Back Squat","Front Squat","Leg Press","Leg Extension"],
+      Hamstrings:["Romanian Deadlift","Leg Curl","Seated Leg Curl","Glute-Ham Raise"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Barbell Standing Calf Raise","Bodyweight Calf Raise"]}},
+    {label:"Day 4",title:"Rest",rest:true},
+    {label:"Day 5",title:"Push",muscles:{
+      Chest:["Barbell Bench Press","Incline Dumbbell Bench Press","Incline Cable Fly","Dumbbell Squeeze Press"],
+      Shoulders:["Overhead Press","Lateral Raise Machine","Seated Dumbbell Shoulder Press","Face Pull"],
+      Triceps:["Close-grip Bench Press","Cable Overhead Tricep Extension","Tricep Extension Machine","Bench Dips"]}},
+    {label:"Day 6",title:"Pull",muscles:{
+      Back:["Conventional Deadlift","Paused Deadlift","Romanian Deadlift","Cable Pull Through"],
+      Biceps:["Barbell Preacher Curl","EZ Bar Preacher Curl","Cable Hammer Curl","Arm Curl Machine"]}},
+    {label:"Day 7",title:"Legs",muscles:{
+      Quads:["Paused Back Squat","Hack Squat Machine","V Squat","Single Leg Leg Press"],
+      Hamstrings:["Stiff Leg Deadlift","Dumbbell Romanian Deadlift","Dumbbell Leg Curl","Glute-Ham Raise"],
+      Calves:["Standing Calf Raise","Seated Calf Raise","Seated Calf Raise","Bodyweight Calf Raise"]}}
+  ]
+}
+];
+
+let active=programs[0].id;
+
+function renderNav(){
+  document.getElementById("nav").innerHTML=programs.map(p=>
+    `<button class="anav${p.id===active?' active':''}" onclick="go('${p.id}')">${p.name.split(' ')[0]} ${p.name.split(' ').slice(-1)[0]}</button>`
+  ).join("");
+}
+
+function go(id){active=id;renderNav();renderContent()}
+
+function renderContent(){
+  const p=programs.find(x=>x.id===active);
+  let h=`<div class="athlete-header">
+    <div class="avatar" style="background:${p.color};color:${p.textColor}">${p.initials}</div>
+    <div><div class="athlete-name">${p.name}</div><div class="athlete-meta">${p.split}</div></div>
+  </div>
+  <div class="note-box">${p.note}</div>
+  <div class="week-grid">`;
+
+  p.days.forEach(d=>{
+    if(d.rest){
+      h+=`<div class="day-card day-rest"><div class="day-header"><span class="day-num">${d.label}</span><span class="day-title">Rest</span></div></div>`;
+    } else {
+      h+=`<div class="day-card"><div class="day-header" style="background:var(--color-background-secondary)"><span class="day-num" style="color:var(--color-text-tertiary)">${d.label}</span><span class="day-title" style="color:var(--color-text-primary)">${d.title}</span></div><div class="muscles-list">`;
+      Object.entries(d.muscles).forEach(([muscle,exs])=>{
+        const c=mc(muscle);
+        h+=`<div class="muscle-group"><span class="muscle-tag" style="background:${c.bg};color:${c.text}">${muscle}</span>`;
+        exs.forEach(e=>{ h+=`<div class="ex-item">${e}</div>`; });
+        h+=`</div>`;
+      });
+      h+=`</div></div>`;
+    }
+  });
+
+  h+=`</div><button class="export-btn" onclick="exp()">Export this program ↗</button>`;
+  document.getElementById("content").innerHTML=h;
+}
+
+function exp(){
+  const p=programs.find(x=>x.id===active);
+  let lines=[`${p.name} — ${p.split}\n`];
+  p.days.forEach(d=>{
+    if(d.rest){lines.push(`${d.label}: Rest`)}
+    else{
+      lines.push(`${d.label}: ${d.title}`);
+      Object.entries(d.muscles).forEach(([m,exs])=>{
+        lines.push(`  ${m}:`);
+        exs.forEach((e,i)=>lines.push(`    ${i+1}. ${e}`));
+      });
+    }
+  });
+  sendPrompt(lines.join("\n"));
+}
+
+renderNav();renderContent();
+</script>

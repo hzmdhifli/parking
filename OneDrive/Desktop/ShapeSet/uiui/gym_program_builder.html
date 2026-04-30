@@ -1,0 +1,194 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.container { padding: 1.5rem 0; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.header p { font-size: 14px; color: var(--color-text-secondary); }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.tab { padding: 6px 14px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: 20px; cursor: pointer; background: transparent; color: var(--color-text-secondary); transition: all 0.15s; }
+.tab.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+.program-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.muscle-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+.muscle-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+.ex-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ex-num { font-size: 12px; color: var(--color-text-tertiary); min-width: 16px; }
+select { flex: 1; font-size: 13px; padding: 6px 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); cursor: pointer; }
+select:focus { outline: none; border-color: var(--color-border-primary); }
+.program-desc { margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.program-desc strong { color: var(--color-text-primary); font-weight: 500; }
+.summary-btn { margin-top: 1.5rem; padding: 10px 20px; font-size: 14px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-primary); cursor: pointer; }
+.summary-btn:hover { background: var(--color-background-secondary); }
+</style>
+
+<div class="container">
+  <div class="header">
+    <h1>Gym program builder</h1>
+    <p>Select a split, then pick your 4 exercises per muscle group.</p>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="program-area"></div>
+  <button class="summary-btn" onclick="sendSummary()">Export my program ↗</button>
+</div>
+
+<script>
+const exercises = {
+  Leg: ["Conventional Deadlift","Back Squat","Smith Machine Split Squat","Smith Machine Deadlift","Smith Machine Squat","Dumbbell Lunge","Dumbbell Goblet Squat","Dumbbell Stiff Leg Deadlift","Front Squat","Zercher Squat","Barbell Bulgarian Split Squat","Dumbbell Bulgarian Split Squat","Dumbbell Split Squat","Bodyweight Split Squat","Air Squat","Jump Squat","Kettlebell Goblet Squat","Romanian Deadlift","Paused Sumo Deadlift","Leg Press","Leg Curl","Leg Extension","Standing Calf Raise","Inner Thigh Machine","Lunge","Step Up","Weighted Step Up","Hip Thrust","Barbell Hip Thrust","V Squat","Reverse V Squat","Glute Kickback Machine","Hip Abduction Machine","Seated Calf Raise","Paused Back Squat","Trap-bar Deadlift","Cable Hip Abduction","Hack Squat Machine","Paused Deadlift","Barbell Box Squat","Barbell Front Rack Lunge","Barbell Jump Squat","Barbell Lunge","Barbell Split Squat","Barbell Standing Calf Raise","Stiff Leg Deadlift","Bodyweight Overhead Squat","Dumbbell Sumo Squat","Dumbbell Leg Curl","Dumbbell Squat","Barbell Hack Squat","Seated Leg Curl","Hip Thrust Machine","Bodyweight Calf Raise","Glute Bridge","Dumbbell Romanian Deadlift","Lying Hip Abduction","Single Leg Glute Bridge","Pistol Box Squat","Side Lying Clam","Bodyweight Single Leg Deadlift","Barbell Single Leg Deadlift","Dumbbell Single Leg Deadlift","Kettlebell Deadlift","Glute-Ham Raise","Kettlebell Sumo Deadlift","Dumbbell Sumo Deadlift","Dumbbell Lateral Lunge","Kettlebell Lateral Lunge","Single Leg Leg Extension","Single Leg Leg Curl","Single Leg Leg Press","Horizontal Leg Press","Single Leg Horizontal Leg Press","Seated Single Leg Leg Curl","Barbell Sumo Squat","Kettlebell Sumo Squat","Sumo Air Squat","Pistol Squat","Donkey Kick","Cable Donkey Kick","Deficit Deadlift","Lunge Twist","Kettlebell Lunge Twist","Cable Pull Through","Monster Glute Machine"],
+  Shoulder: ["Overhead Press","Smith Machine Overhead Press","Smith Machine Shrug","Dumbbell Shoulder Press","Dumbbell Lateral Raise","Bentover Dumbbell Lateral Raise","Barbell Front Raise","Reverse Pec Deck Fly Machine","Arnold Dumbbell Press","Shoulder Press Machine","Behind Neck Press","Dumbbell Front Raise","Dumbbell Shrug","Barbell Shrug","Face Pull","Handstand","Handstand Push Up","Cable Reverse Fly","Barbell Upright Row","Dumbbell Upright Row","EZ Bar Upright Row","Push Press","Lateral Raise Machine","Cable Lateral Raise","Cable Front Raise","EZ Bar Front Raise","Seated Dumbbell Rear Lateral Raise","Shoulder Tap","Seated Barbell Shoulder Press","Seated Dumbbell Shoulder Press","Plate Shoulder Press","Y Raise","Dumbbell Y Raise","Shrug Machine","Cable Shrug","Cable Internal Rotation","Cable External Roation","One Arm Cable Lateral Raise","Landmine Press","One Arm Landmine Press"],
+  Chest: ["Barbell Bench Press","Smith Machine Bench Press","Smith Machine Incline Bench Press","Dumbbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Standing Cable Fly","Barbell Incline Bench Press","Dips","Weighted Dips","Incline Dumbbell Fly","Push Up","Weighted Push Up","Hindu Push Up","Archer Push Up","Close-grip Push Up","Chest Press Machine","Pec Deck Fly Machine","Incline Bench Press Machine","Dumbbell Pullover","Seated Dips Machine","Low-pulley Cable Fly","Hammer Bench Press","Spoto Bench Press","Assisted Dip Machine","Barbell Floor Chest Press","Clap Push Up","Decline Dumbbell Fly","Incline Push Up","Knee Push Up","Pike Push Up","Decline Chest Press Machine","Incline Dumbbell Twist Press","Incline Cable Fly","Incline Chest Press Machine","Dumbbell Squeeze Press"],
+  Arm: ["Dumbbell Tricep Extension","Dumbbell Kickback","Dumbbell Bicep Curl","Cable Curl","Cable Push Down","EZ Bar Curl","Dumbbell Hammer Curl","Close-grip Bench Press","Seated Dumbbell Tricep Extension","Cable Tricep Extension","Barbell Wrist Curl","EZ Bar Wrist Curl","Dumbbell Wrist Curl","Skull Crusher","Lying Tricep Extension","Dumbbell Preacher Curl","Barbbell Preacher Curl","EZ Bar Preacher Curl","Preacher Curl Machine","Arm Curl Machine","Cable Hammer Curl","Cable Overhead Tricep Extension","Cable Lying Tricep Extension","Reverse Barbell Wrist Curl","Reverse Dumbbell Wrist Curl","Incline Dumbbell Curl","Bench Dips","Wrist Roller","Reverse Barbell Curl","Tricep Extension Machine"],
+  Abs: ["Sit Up","Crunch","V-up","Heel Touch","Leg Raise","Hanging Leg Raise","Hollow Rock","Hollow Position","Plank","Dumbbell Side Bend","Abs Roll Out","Air Bicycle Abs","Hanging Knee Raise","Abdominal Crunch Machine","Hang Clean","Hang Snatch","Pilates Jackknife","Reverse Crunch","Side Plank","45 Degree Side Bend","RKC Plank","Cable Side Bend","Weighted Decline Crunch","Decline Reverse Crunch","Decline Sit Up","Weighted Decline Sit Up","Side Crunch","Cable Twist","Abdominal Hip Thrust","Weighted Abdominal Hip Thrust"],
+  Back: ["Conventional Deadlift","Trap-bar Deadlift","Romanian Deadlift","Deficit Deadlift","Paused Deadlift","Cable Pull Through","Glute-Ham Raise"]
+};
+
+const programs = {
+  "Push Pull Legs": {
+    days: [
+      { name: "Push", muscles: ["Chest","Shoulder","Arm"], color: "#E6F1FB", textColor: "#0C447C", borderColor: "#378ADD" },
+      { name: "Pull", muscles: ["Back","Arm","Abs"], color: "#E1F5EE", textColor: "#085041", borderColor: "#1D9E75" },
+      { name: "Legs", muscles: ["Leg","Abs"], color: "#FAEEDA", textColor: "#633806", borderColor: "#BA7517" }
+    ],
+    desc: "<strong>Push Pull Legs (PPL)</strong> — A classic 3-day split where pushing muscles (chest, shoulders, triceps), pulling muscles (back, biceps), and legs each get dedicated sessions. Run it 3–6 days a week for balanced volume and recovery."
+  },
+  "Arnold Split": {
+    days: [
+      { name: "Chest & Back", muscles: ["Chest","Back"], color: "#FBEAF0", textColor: "#72243E", borderColor: "#D4537E" },
+      { name: "Shoulders & Arms", muscles: ["Shoulder","Arm"], color: "#EEEDFE", textColor: "#3C3489", borderColor: "#7F77DD" },
+      { name: "Legs & Abs", muscles: ["Leg","Abs"], color: "#FAEEDA", textColor: "#633806", borderColor: "#BA7517" }
+    ],
+    desc: "<strong>Arnold Split</strong> — Arnold Schwarzenegger's legendary 6-day routine (each day repeated twice a week). Chest & back are trained together to maximize the pump, shoulders & arms follow, then legs & abs close the cycle."
+  },
+  "Upper Lower": {
+    days: [
+      { name: "Upper A", muscles: ["Chest","Back","Shoulder"], color: "#E6F1FB", textColor: "#0C447C", borderColor: "#378ADD" },
+      { name: "Lower A", muscles: ["Leg","Abs"], color: "#EAF3DE", textColor: "#27500A", borderColor: "#639922" },
+      { name: "Upper B", muscles: ["Chest","Arm","Shoulder"], color: "#EEEDFE", textColor: "#3C3489", borderColor: "#7F77DD" },
+      { name: "Lower B", muscles: ["Leg","Abs"], color: "#FAEEDA", textColor: "#633806", borderColor: "#BA7517" }
+    ],
+    desc: "<strong>Upper / Lower</strong> — A 4-day split that alternates upper body and lower body sessions. Each muscle group gets trained twice a week, making it ideal for intermediate lifters who want frequency without burnout."
+  },
+  "Full Body": {
+    days: [
+      { name: "Day A", muscles: ["Chest","Back","Leg","Abs"], color: "#E6F1FB", textColor: "#0C447C", borderColor: "#378ADD" },
+      { name: "Day B", muscles: ["Shoulder","Arm","Leg","Abs"], color: "#EEEDFE", textColor: "#3C3489", borderColor: "#7F77DD" },
+      { name: "Day C", muscles: ["Chest","Back","Shoulder","Leg"], color: "#E1F5EE", textColor: "#085041", borderColor: "#1D9E75" }
+    ],
+    desc: "<strong>Full Body</strong> — Train every major muscle group each session, 3 days a week. Great for beginners and busy schedules. High frequency per muscle ensures fast adaptation and strength gains."
+  },
+  "Bro Split": {
+    days: [
+      { name: "Chest day", muscles: ["Chest","Abs"], color: "#FBEAF0", textColor: "#72243E", borderColor: "#D4537E" },
+      { name: "Back day", muscles: ["Back","Abs"], color: "#E1F5EE", textColor: "#085041", borderColor: "#1D9E75" },
+      { name: "Shoulder day", muscles: ["Shoulder","Abs"], color: "#EEEDFE", textColor: "#3C3489", borderColor: "#7F77DD" },
+      { name: "Arm day", muscles: ["Arm","Abs"], color: "#FAEEDA", textColor: "#633806", borderColor: "#BA7517" },
+      { name: "Leg day", muscles: ["Leg","Abs"], color: "#EAF3DE", textColor: "#27500A", borderColor: "#639922" }
+    ],
+    desc: "<strong>Bro Split</strong> — One muscle group per day, 5 days a week. Maximum volume and focus per session. Popular for hypertrophy and bodybuilding aesthetics, though each muscle only gets hit once a week."
+  }
+};
+
+const defaults = {
+  Chest: ["Barbell Bench Press","Incline Dumbbell Bench Press","Dumbbell Fly","Dips"],
+  Back: ["Conventional Deadlift","Romanian Deadlift","Cable Pull Through","Glute-Ham Raise"],
+  Shoulder: ["Overhead Press","Dumbbell Lateral Raise","Face Pull","Arnold Dumbbell Press"],
+  Arm: ["Dumbbell Bicep Curl","EZ Bar Curl","Skull Crusher","Cable Push Down"],
+  Leg: ["Back Squat","Romanian Deadlift","Leg Press","Standing Calf Raise"],
+  Abs: ["Plank","Hanging Leg Raise","Crunch","Ab Wheel Rollout"]
+};
+
+const selections = {};
+let activeProgram = "Push Pull Legs";
+
+function muscleColor(name) {
+  const map = { Chest:"#E6F1FB", Back:"#E1F5EE", Shoulder:"#EEEDFE", Arm:"#FBEAF0", Leg:"#EAF3DE", Abs:"#FAEEDA" };
+  return map[name] || "#F1EFE8";
+}
+function muscleText(name) {
+  const map = { Chest:"#0C447C", Back:"#085041", Shoulder:"#3C3489", Arm:"#72243E", Leg:"#27500A", Abs:"#633806" };
+  return map[name] || "#444441";
+}
+
+function getExercises(muscle) {
+  if (muscle === "Back") return exercises.Back;
+  return exercises[muscle] || [];
+}
+
+function renderTabs() {
+  const tabsEl = document.getElementById("tabs");
+  tabsEl.innerHTML = Object.keys(programs).map(p =>
+    `<button class="tab ${p === activeProgram ? 'active' : ''}" onclick="switchProgram('${p}')">${p}</button>`
+  ).join("");
+}
+
+function switchProgram(p) {
+  activeProgram = p;
+  renderTabs();
+  renderProgram();
+}
+
+function getKey(day, muscle, i) { return `${activeProgram}__${day}__${muscle}__${i}`; }
+
+function renderProgram() {
+  const prog = programs[activeProgram];
+  let html = `<div class="program-grid">`;
+
+  prog.days.forEach(day => {
+    html += `<div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
+      <div style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:10px;">${day.name}</div>`;
+
+    day.muscles.forEach(muscle => {
+      const exList = getExercises(muscle);
+      html += `<div style="margin-bottom:14px;">
+        <div class="muscle-label" style="background:${muscleColor(muscle)};color:${muscleText(muscle)}">${muscle}</div>`;
+
+      for (let i = 0; i < 4; i++) {
+        const key = getKey(day.name, muscle, i);
+        const saved = selections[key];
+        const def = (defaults[muscle] && defaults[muscle][i]) ? defaults[muscle][i] : exList[i];
+        const current = saved || def;
+        html += `<div class="ex-row">
+          <span class="ex-num">${i+1}</span>
+          <select onchange="saveSelection('${key}', this.value)">`;
+        exList.forEach(ex => {
+          html += `<option value="${ex}" ${ex === current ? 'selected' : ''}>${ex}</option>`;
+        });
+        html += `</select></div>`;
+      }
+      html += `</div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  html += `<div class="program-desc">${prog.desc}</div>`;
+  document.getElementById("program-area").innerHTML = html;
+}
+
+function saveSelection(key, value) {
+  selections[key] = value;
+}
+
+function sendSummary() {
+  const prog = programs[activeProgram];
+  let lines = [`My ${activeProgram} program:\n`];
+  prog.days.forEach(day => {
+    lines.push(`--- ${day.name} ---`);
+    day.muscles.forEach(muscle => {
+      lines.push(`${muscle}:`);
+      for (let i = 0; i < 4; i++) {
+        const key = getKey(day.name, muscle, i);
+        const exList = getExercises(muscle);
+        const def = (defaults[muscle] && defaults[muscle][i]) ? defaults[muscle][i] : exList[i];
+        lines.push(`  ${i+1}. ${selections[key] || def}`);
+      }
+    });
+  });
+  sendPrompt(lines.join("\n"));
+}
+
+renderTabs();
+renderProgram();
+</script>

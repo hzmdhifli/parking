@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#181818;--surface:#1e1e1e;--surface2:#252525;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
+  --gold:#c9a84c;--gold2:#e8c87a;--gold3:rgba(201,168,76,0.15);
+  --text:#f0ede8;--muted:#888480;--dim:#4a4845;
+  --red:#e85c4a;--redbg:rgba(232,92,74,0.12);--redtext:#f07060;
+  --green:#5aad7e;--greenbg:rgba(90,173,126,0.12);--greentext:#6dc892;
+  --blue:#4a8fe8;--bluebg:rgba(74,143,232,0.12);--bluetext:#70aff5;
+  --r:14px;--rs:8px;--rxs:6px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding-bottom:90px}
+.screen.active{display:block}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:48px 22px 14px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.hdr-logo{font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;color:var(--gold)}
+.hdr-back{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--muted);font-size:13px;transition:color .2s}
+.hdr-back:hover{color:var(--text)}
+.hdr-back svg,.hdr-icon svg{width:16px;height:16px}
+.hdr-title{font-family:'Bebas Neue';font-size:17px;letter-spacing:2px}
+.hdr-icon{width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(10,10,10,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:10px 0 22px;z-index:20}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--dim);transition:color .2s;min-width:60px}
+.ni.active{color:var(--gold)}
+.ni svg{width:20px;height:20px}
+.ni span{font-size:9px;letter-spacing:.5px;text-transform:uppercase}
+
+/* UTILS */
+.sec-lbl{font-size:10px;font-weight:500;letter-spacing:1.8px;color:var(--dim);text-transform:uppercase;padding:0 22px;margin-bottom:10px}
+.sec-title{font-family:'Bebas Neue';font-size:19px;letter-spacing:2px;margin-bottom:12px}
+.divider{height:1px;background:var(--border);margin:0 0 22px}
+.tag-pill{display:inline-flex;align-items:center;font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:4px 10px;border-radius:100px}
+.tag-muscle{background:var(--gold3);color:var(--gold2);border:1px solid rgba(201,168,76,0.3)}
+.tag-loss{background:var(--redbg);color:var(--redtext);border:1px solid rgba(232,92,74,0.25)}
+.tag-endurance{background:var(--greenbg);color:var(--greentext);border:1px solid rgba(90,173,126,0.25)}
+
+/* ══ HOME ══ */
+.hero{padding:18px 22px 24px}
+.hero-greet{font-size:12px;color:var(--muted);letter-spacing:.5px;margin-bottom:3px}
+.hero-title{font-family:'Bebas Neue';font-size:34px;letter-spacing:2px;line-height:1.1}
+.hero-title span{color:var(--gold)}
+
+.pills-row{display:flex;gap:7px;padding:0 22px;overflow-x:auto;scrollbar-width:none;margin-bottom:24px}
+.pills-row::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;padding:7px 15px;border-radius:100px;font-size:12px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.pill.active,.pill:hover{background:var(--gold);border-color:var(--gold);color:#0a0a0a;font-weight:500}
+
+/* Featured */
+.feat-wrap{padding:0 22px;margin-bottom:26px}
+.feat-card{border-radius:var(--r);overflow:hidden;position:relative;height:210px;cursor:pointer;transition:transform .2s}
+.feat-card:hover{transform:scale(1.01)}
+.feat-card:active{transform:scale(0.99)}
+.feat-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a1208 0%,#2d1e0a 40%,#0a0a0a 100%)}
+.feat-glow{position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.18) 0%,transparent 70%);top:-30px;right:-30px}
+.feat-cnt{position:relative;z-index:2;padding:22px;height:100%;display:flex;flex-direction:column;justify-content:space-between}
+.feat-name{font-family:'Bebas Neue';font-size:26px;letter-spacing:2px;line-height:1.1;margin-top:6px}
+.feat-sub{font-size:12px;color:rgba(240,237,232,0.55);margin-top:2px}
+.feat-stats{display:flex;gap:18px}
+.fstat-v{font-family:'Bebas Neue';font-size:19px;color:var(--gold2);letter-spacing:1px}
+.fstat-l{font-size:10px;color:var(--muted);letter-spacing:.5px}
+.feat-arr{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:rgba(201,168,76,0.13);border:1px solid rgba(201,168,76,0.28);display:flex;align-items:center;justify-content:center;z-index:2}
+.feat-arr svg{width:13px;height:13px;color:var(--gold)}
+
+/* Athlete cards */
+.cards-grid{padding:0 22px;display:flex;flex-direction:column;gap:12px}
+.acard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.acard:hover{border-color:var(--border2);background:#232323}
+.acard:active{transform:scale(0.99)}
+.acard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.acard.muscle::before{background:var(--gold)}
+.acard.loss::before{background:var(--red)}
+.acard.endurance::before{background:var(--green)}
+.ava{width:48px;height:48px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:18px;letter-spacing:1px}
+.ava.muscle{background:rgba(201,168,76,0.1);color:var(--gold2)}
+.ava.loss{background:var(--redbg);color:var(--redtext)}
+.ava.endurance{background:var(--greenbg);color:var(--greentext)}
+.ai{flex:1;min-width:0}
+.an{font-weight:500;font-size:14px;margin-bottom:1px}
+.as{font-size:11px;color:var(--muted);margin-bottom:7px}
+.atags{display:flex;gap:5px;flex-wrap:wrap}
+.atag{font-size:10px;padding:2px 7px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted)}
+.ar{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.dots{display:flex;gap:3px}
+.dot{width:5px;height:5px;border-radius:50%}
+.dot.f{background:var(--gold)}
+.dot.e{background:var(--border2)}
+.arr svg{width:13px;height:13px;color:var(--dim)}
+
+/* ══ DETAIL ══ */
+.prog-hero{position:relative;height:260px;overflow:hidden}
+.prog-hero-letters{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:120px;letter-spacing:-4px;opacity:.05;color:var(--text);user-select:none}
+.prog-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 20%,var(--bg) 100%)}
+.prog-hero-cnt{position:absolute;bottom:0;left:0;right:0;padding:22px}
+.prog-hero-name{font-family:'Bebas Neue';font-size:38px;letter-spacing:3px;line-height:1}
+.prog-hero-sport{font-size:13px;color:var(--muted);margin-top:2px}
+.prog-bg-muscle{background:linear-gradient(135deg,#1a1208,#221808,#0a0a0a)}
+.prog-bg-loss{background:linear-gradient(135deg,#1a0a08,#221208,#0a0a0a)}
+.prog-bg-endurance{background:linear-gradient(135deg,#081a10,#0a2212,#0a0a0a)}
+
+.pbody{padding:0 22px}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:24px;padding-top:6px}
+.sbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:13px 10px;text-align:center}
+.sbox-v{font-family:'Bebas Neue';font-size:24px;color:var(--gold);letter-spacing:1px}
+.sbox-l{font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:1px}
+.bio{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px}
+
+/* Schedule */
+.sched{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.sday{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s}
+.sday:hover{border-color:var(--border2)}
+.sday:active{transform:scale(0.99)}
+.dnum{font-family:'Bebas Neue';font-size:20px;color:var(--dim);min-width:28px}
+.dinfo{flex:1}
+.dname{font-size:13px;font-weight:500;margin-bottom:1px}
+.ddesc{font-size:11px;color:var(--muted)}
+.dbadge{font-size:10px;padding:3px 8px;border-radius:100px;font-weight:500;flex-shrink:0}
+.dbadge.train{background:var(--gold3);color:var(--gold2)}
+.dbadge.rest{background:var(--bg3);color:var(--dim);border:1px solid var(--border)}
+
+/* Meals */
+.meals{display:flex;flex-direction:column;gap:9px;margin-bottom:24px}
+.meal{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:13px 14px}
+.meal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.meal-time{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.meal-cal{font-size:10px;color:var(--gold);font-weight:500}
+.meal-name{font-size:13px;font-weight:500;margin-bottom:5px}
+.macros{display:flex;gap:12px}
+.mac{font-size:10px;color:var(--muted)}
+.mac span{color:var(--text)}
+
+/* CTAs */
+.cta{width:100%;padding:17px;background:var(--gold);color:#0a0a0a;border:none;border-radius:var(--r);font-family:'Bebas Neue';font-size:17px;letter-spacing:3px;cursor:pointer;transition:all .2s;margin-bottom:10px;display:block;text-align:center}
+.cta:hover{background:var(--gold2);transform:scale(0.99)}
+.cta2{width:100%;padding:14px;background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-size:13px;cursor:pointer;transition:all .2s;display:block;text-align:center}
+.cta2:hover{border-color:var(--border3);color:var(--text)}
+
+/* ══ QUIZ ══ */
+.quiz-wrap{padding:22px}
+.quiz-step{display:none}
+.quiz-step.active{display:block}
+.quiz-prog{display:flex;gap:5px;margin-bottom:28px}
+.qp-dot{flex:1;height:3px;border-radius:2px;background:var(--border2);transition:background .3s}
+.qp-dot.done{background:var(--gold)}
+.quiz-q{font-family:'Bebas Neue';font-size:26px;letter-spacing:2px;line-height:1.15;margin-bottom:6px}
+.quiz-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.qopts{display:flex;flex-direction:column;gap:10px}
+.qopt{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px}
+.qopt:hover{border-color:var(--gold);background:#1e1a10}
+.qopt.selected{border-color:var(--gold);background:#1e1a10}
+.qopt-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.qopt-txt .qo-title{font-size:14px;font-weight:500;margin-bottom:2px}
+.qopt-txt .qo-sub{font-size:11px;color:var(--muted)}
+.qnext{margin-top:22px}
+.quiz-result{text-align:center;padding:20px 0}
+.qr-match{font-size:48px;margin-bottom:12px}
+.qr-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.qr-name{font-family:'Bebas Neue';font-size:34px;letter-spacing:3px;color:var(--gold);margin-bottom:6px}
+.qr-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px}
+.qr-tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:26px}
+
+/* ══ WORKOUT SESSION ══ */
+.ws-hdr{padding:22px 22px 0}
+.ws-prog-bar{background:var(--surface);border-radius:100px;height:5px;overflow:hidden;margin-bottom:6px}
+.ws-prog-fill{height:100%;background:var(--gold);border-radius:100px;transition:width .4s}
+.ws-prog-txt{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:20px}
+.ws-timer{text-align:center;margin-bottom:24px}
+.ws-timer-ring{display:inline-block;position:relative;width:100px;height:100px}
+.ws-timer-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ws-timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;color:var(--gold)}
+.ex-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin:0 22px 18px}
+.ex-category{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.ex-name{font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;margin-bottom:14px}
+.ex-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.exs{background:var(--bg3);border-radius:var(--rs);padding:10px;text-align:center}
+.exs-v{font-family:'Bebas Neue';font-size:20px;color:var(--text);letter-spacing:1px}
+.exs-l{font-size:9px;color:var(--muted);margin-top:1px}
+.ex-sets{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.set-row{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:var(--rs);padding:10px 14px}
+.set-num{font-size:11px;color:var(--dim);min-width:40px}
+.set-val{font-size:13px;font-weight:500;flex:1}
+.set-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.set-check.done{background:var(--gold);border-color:var(--gold)}
+.set-check svg{width:12px;height:12px;color:#0a0a0a;display:none}
+.set-check.done svg{display:block}
+.ex-tip{background:var(--bg3);border-left:2px solid var(--gold);padding:10px 14px;border-radius:0 var(--rs) var(--rs) 0;font-size:12px;color:var(--muted);line-height:1.6}
+.ex-nav{display:flex;gap:10px;padding:0 22px;margin-bottom:18px}
+.ex-nav-btn{flex:1;padding:14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;border:1px solid var(--border2);background:transparent;color:var(--muted)}
+.ex-nav-btn:hover{border-color:var(--border3);color:var(--text)}
+.ex-nav-btn.primary{background:var(--gold);color:#0a0a0a;border-color:var(--gold);font-family:'Bebas Neue';font-size:16px;letter-spacing:2px}
+.ex-nav-btn.primary:hover{background:var(--gold2)}
+
+/* ══ PROGRESS ══ */
+.prog-wrap{padding:22px}
+.p-greeting{margin-bottom:22px}
+.p-week{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.p-name{font-family:'Bebas Neue';font-size:28px;letter-spacing:2px}
+.p-name span{color:var(--gold)}
+
+/* Summary cards */
+.sum-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.sum-icon{font-size:18px;margin-bottom:8px}
+.sum-v{font-family:'Bebas Neue';font-size:26px;letter-spacing:1px;margin-bottom:2px}
+.sum-l{font-size:11px;color:var(--muted)}
+.sum-delta{font-size:10px;font-weight:500;margin-top:5px;display:inline-block;padding:2px 7px;border-radius:100px}
+.delta-up{background:var(--greenbg);color:var(--greentext)}
+.delta-down{background:var(--redbg);color:var(--redtext)}
+
+/* Bar chart */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:22px}
+.chart-title{font-size:12px;font-weight:500;margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--muted);margin-bottom:18px}
+.bars{display:flex;align-items:flex-end;justify-content:space-between;height:80px;gap:6px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.bar-bg{width:100%;background:var(--bg3);border-radius:4px 4px 0 0;position:relative;overflow:hidden;flex:1;max-height:80px}
+.bar-fill{position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height .6s}
+.bar-lbl{font-size:9px;color:var(--muted)}
+
+/* Streak */
+.streak-row{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+.streak-day{width:36px;height:36px;border-radius:var(--rxs);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.streak-day.done{background:var(--gold3);border:1px solid rgba(201,168,76,0.3);color:var(--gold2)}
+.streak-day.skip{background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
+.streak-day.today{background:var(--gold);color:#0a0a0a;font-weight:600}
+.streak-day.future{background:var(--bg);border:1px dashed var(--border2);color:var(--dim)}
+
+/* Active program card */
+.active-prog{background:linear-gradient(135deg,#1a1208,#221808);border:1px solid rgba(201,168,76,0.2);border-radius:var(--r);padding:18px;margin-bottom:22px;cursor:pointer;transition:all .2s}
+.active-prog:hover{border-color:rgba(201,168,76,0.35)}
+.ap-label{font-size:10px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.ap-name{font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px}
+.ap-bar{background:rgba(201,168,76,0.12);border-radius:100px;height:4px;overflow:hidden;margin-bottom:5px}
+.ap-fill{height:100%;background:var(--gold);border-radius:100px}
+.ap-pct{font-size:11px;color:var(--muted)}
+.ap-week{color:var(--gold2);font-weight:500}
+
+/* Achievements */
+.achiev{display:flex;flex-direction:column;gap:9px}
+.ach-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:13px 14px;display:flex;align-items:center;gap:12px}
+.ach-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ach-icon.gold{background:var(--gold3)}
+.ach-icon.gray{background:var(--bg3)}
+.ach-info{flex:1}
+.ach-name{font-size:13px;font-weight:500;margin-bottom:1px}
+.ach-desc{font-size:11px;color:var(--muted)}
+.ach-lock{color:var(--dim)}
+.ach-lock svg{width:14px;height:14px}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HOME ══════════ -->
+<div id="s-home" class="screen active">
+  <div class="hdr">
+    <div class="hdr-logo">ATHLÈTE</div>
+    <div class="hdr-icon" onclick="show('s-quiz');setNav('quiz')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="hero-greet">Good morning, Alex 👋</div>
+    <div class="hero-title">TRAIN LIKE<br>AN <span>ATHLETE</span></div>
+  </div>
+  <div class="sec-lbl">Filter by Goal</div>
+  <div class="pills-row">
+    <div class="pill active" onclick="filterCards(this,'all')">All Programs</div>
+    <div class="pill" onclick="filterCards(this,'muscle')">Muscle Building</div>
+    <div class="pill" onclick="filterCards(this,'loss')">Weight Loss</div>
+    <div class="pill" onclick="filterCards(this,'endurance')">Endurance</div>
+  </div>
+  <div class="feat-wrap">
+    <div class="feat-card" onclick="openDetail('ronaldo')">
+      <div class="feat-bg"></div><div class="feat-glow"></div>
+      <div class="feat-cnt">
+        <div>
+          <div class="tag-pill tag-muscle">⚡ Featured Program</div>
+          <div class="feat-name">CRISTIANO<br>RONALDO</div>
+          <div class="feat-sub">Full Body Performance · 12 Weeks</div>
+        </div>
+        <div class="feat-stats">
+          <div><div class="fstat-v">12</div><div class="fstat-l">Weeks</div></div>
+          <div><div class="fstat-v">6</div><div class="fstat-l">Days/Wk</div></div>
+          <div><div class="fstat-v">2.8K</div><div class="fstat-l">Athletes</div></div>
+        </div>
+      </div>
+      <div class="feat-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </div>
+  </div>
+  <div class="sec-lbl" style="margin-bottom:12px">All Programs</div>
+  <div class="cards-grid" id="cards-grid">
+    <div class="acard muscle" data-type="muscle" onclick="openDetail('ronaldo')">
+      <div class="ava muscle">CR</div>
+      <div class="ai"><div class="an">Cristiano Ronaldo</div><div class="as">Football · Functional Strength</div><div class="atags"><span class="atag">Muscle</span><span class="atag">Speed</span><span class="atag">Core</span></div></div>
+      <div class="ar"><div class="dots"><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot e"></div></div><div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="acard loss" data-type="loss" onclick="openDetail('serena')">
+      <div class="ava loss">SW</div>
+      <div class="ai"><div class="an">Serena Williams</div><div class="as">Tennis · Power & Agility</div><div class="atags"><span class="atag">Fat Loss</span><span class="atag">Agility</span><span class="atag">HIIT</span></div></div>
+      <div class="ar"><div class="dots"><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot e"></div><div class="dot e"></div></div><div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="acard endurance" data-type="endurance" onclick="openDetail('kipchoge')">
+      <div class="ava endurance">EK</div>
+      <div class="ai"><div class="an">Eliud Kipchoge</div><div class="as">Marathon · Endurance</div><div class="atags"><span class="atag">Cardio</span><span class="atag">Stamina</span><span class="atag">Mental</span></div></div>
+      <div class="ar"><div class="dots"><div class="dot f"></div><div class="dot f"></div><div class="dot e"></div><div class="dot e"></div><div class="dot e"></div></div><div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="acard muscle" data-type="muscle" onclick="openDetail('thor')">
+      <div class="ava muscle">HT</div>
+      <div class="ai"><div class="an">Hafþór Björnsson</div><div class="as">Strongman · Mass Building</div><div class="atags"><span class="atag">Hypertrophy</span><span class="atag">Strength</span></div></div>
+      <div class="ar"><div class="dots"><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div></div><div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="acard loss" data-type="loss" onclick="openDetail('mayweather')">
+      <div class="ava loss">FM</div>
+      <div class="ai"><div class="an">Floyd Mayweather</div><div class="as">Boxing · Cut & Condition</div><div class="atags"><span class="atag">Fat Loss</span><span class="atag">Conditioning</span></div></div>
+      <div class="ar"><div class="dots"><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot f"></div><div class="dot e"></div></div><div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+  </div>
+  <div class="bnav" id="bnav-home">
+    <div class="ni active" onclick="show('s-home');setNav('home')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+    <div class="ni" onclick="show('s-quiz');setNav('quiz')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Quiz</span></div>
+    <div class="ni" onclick="show('s-progress');setNav('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Progress</span></div>
+    <div class="ni" onclick="show('s-progress');setNav('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
+  </div>
+</div>
+
+<!-- ══════════ DETAIL ══════════ -->
+<div id="s-detail" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" id="detail-back" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</div>
+    <div class="hdr-title" id="d-initials"></div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="prog-hero" id="d-hero">
+    <div id="d-hero-bg" style="position:absolute;inset:0"></div>
+    <div class="prog-hero-letters" id="d-letters"></div>
+    <div class="prog-hero-overlay"></div>
+    <div class="prog-hero-cnt">
+      <div class="tag-pill" id="d-tag" style="margin-bottom:7px"></div>
+      <div class="prog-hero-name" id="d-name"></div>
+      <div class="prog-hero-sport" id="d-sport"></div>
+    </div>
+  </div>
+  <div class="pbody">
+    <div class="stats3">
+      <div class="sbox"><div class="sbox-v" id="d-weeks"></div><div class="sbox-l">Weeks</div></div>
+      <div class="sbox"><div class="sbox-v" id="d-days"></div><div class="sbox-l">Days/Wk</div></div>
+      <div class="sbox"><div class="sbox-v" id="d-level"></div><div class="sbox-l">Level</div></div>
+    </div>
+    <div class="sec-title">About this Program</div>
+    <div class="bio" id="d-bio"></div>
+    <div class="divider"></div>
+    <div class="sec-title">Weekly Schedule</div>
+    <div class="sched" id="d-sched"></div>
+    <div class="divider"></div>
+    <div class="sec-title">Nutrition Plan</div>
+    <div class="meals" id="d-meals"></div>
+    <div class="divider"></div>
+    <button class="cta" onclick="startSession()">START TODAY'S SESSION</button>
+    <button class="cta2" onclick="show('s-home');setNav('home')">Browse Other Programs</button>
+  </div>
+  <div class="bnav">
+    <div class="ni" onclick="show('s-home');setNav('home')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+    <div class="ni" onclick="show('s-quiz');setNav('quiz')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Quiz</span></div>
+    <div class="ni active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Progress</span></div>
+    <div class="ni" onclick="show('s-progress');setNav('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
+  </div>
+</div>
+
+<!-- ══════════ WORKOUT SESSION ══════════ -->
+<div id="s-workout" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="show('s-detail');setNav('programs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> End Session</div>
+    <div class="hdr-title">TRAINING</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="ws-hdr">
+    <div class="ws-prog-bar"><div class="ws-prog-fill" id="ws-fill" style="width:20%"></div></div>
+    <div class="ws-prog-txt"><span id="ws-ex-label">Exercise 1 of 5</span><span id="ws-time-elapsed">0:00 elapsed</span></div>
+    <div class="ws-timer">
+      <div class="ws-timer-ring">
+        <svg viewBox="0 0 100 100" width="100" height="100">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/>
+          <circle id="ws-ring" cx="50" cy="50" r="44" fill="none" stroke="#c9a84c" stroke-width="6" stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round"/>
+        </svg>
+        <div class="ws-timer-num" id="ws-timer-num">1:30</div>
+      </div>
+    </div>
+  </div>
+  <div class="ex-card">
+    <div class="ex-category" id="ex-cat">Compound · Upper Body</div>
+    <div class="ex-name" id="ex-name">BENCH PRESS</div>
+    <div class="ex-stats">
+      <div class="exs"><div class="exs-v" id="ex-sets-v">4</div><div class="exs-l">Sets</div></div>
+      <div class="exs"><div class="exs-v" id="ex-reps-v">8–10</div><div class="exs-l">Reps</div></div>
+      <div class="exs"><div class="exs-v" id="ex-rest-v">90s</div><div class="exs-l">Rest</div></div>
+    </div>
+    <div class="ex-sets" id="ex-sets-list"></div>
+    <div class="ex-tip" id="ex-tip">Keep your shoulder blades retracted and maintain a slight arch. Drive through the heels and keep elbows at 45°.</div>
+  </div>
+  <div class="ex-nav">
+    <button class="ex-nav-btn" id="ws-prev-btn" onclick="wsNav(-1)">← Prev</button>
+    <button class="ex-nav-btn primary" onclick="wsNav(1)" id="ws-next-btn">NEXT EXERCISE →</button>
+  </div>
+  <div class="bnav">
+    <div class="ni" onclick="show('s-home');setNav('home')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+    <div class="ni" onclick="show('s-quiz');setNav('quiz')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Quiz</span></div>
+    <div class="ni active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Training</span></div>
+    <div class="ni" onclick="show('s-progress');setNav('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
+  </div>
+</div>
+
+<!-- ══════════ QUIZ ══════════ -->
+<div id="s-quiz" class="screen">
+  <div class="hdr">
+    <div class="hdr-back" onclick="show('s-home');setNav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</div>
+    <div class="hdr-title">FIND YOUR MATCH</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="quiz-wrap">
+    <div class="quiz-prog">
+      <div class="qp-dot done" id="qd0"></div>
+      <div class="qp-dot" id="qd1"></div>
+      <div class="qp-dot" id="qd2"></div>
+      <div class="qp-dot" id="qd3"></div>
+    </div>
+
+    <div class="quiz-step active" id="qs0">
+      <div class="quiz-q">WHAT'S YOUR MAIN GOAL?</div>
+      <div class="quiz-sub">This helps us match you with the athlete whose training philosophy fits you best.</div>
+      <div class="qopts">
+        <div class="qopt" onclick="selectOpt(this,0,'muscle')"><div class="qopt-icon" style="background:var(--gold3)">💪</div><div class="qopt-txt"><div class="qo-title">Build Muscle & Strength</div><div class="qo-sub">Hypertrophy, power, mass</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,0,'loss')"><div class="qopt-icon" style="background:var(--redbg)">🔥</div><div class="qopt-txt"><div class="qo-title">Lose Fat & Get Lean</div><div class="qo-sub">Burn calories, cut body fat</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,0,'endurance')"><div class="qopt-icon" style="background:var(--greenbg)">🏃</div><div class="qopt-txt"><div class="qo-title">Build Endurance & Stamina</div><div class="qo-sub">Cardio, running, long distance</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,0,'muscle')"><div class="qopt-icon" style="background:var(--bluebg)">⚡</div><div class="qopt-txt"><div class="qo-title">Athletic Performance</div><div class="qo-sub">Speed, agility, sport-specific</div></div></div>
+      </div>
+      <button class="cta qnext" onclick="nextQ(1)">CONTINUE →</button>
+    </div>
+
+    <div class="quiz-step" id="qs1">
+      <div class="quiz-q">HOW DO YOU TRAIN NOW?</div>
+      <div class="quiz-sub">Your current experience level shapes the intensity of your program.</div>
+      <div class="qopts">
+        <div class="qopt" onclick="selectOpt(this,1,'beg')"><div class="qopt-icon" style="background:var(--greenbg)">🌱</div><div class="qopt-txt"><div class="qo-title">Beginner</div><div class="qo-sub">Under 1 year of training</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,1,'int')"><div class="qopt-icon" style="background:var(--gold3)">🏋️</div><div class="qopt-txt"><div class="qo-title">Intermediate</div><div class="qo-sub">1–3 years of consistent training</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,1,'adv')"><div class="qopt-icon" style="background:var(--redbg)">🦾</div><div class="qopt-txt"><div class="qo-title">Advanced</div><div class="qo-sub">3+ years, serious athlete</div></div></div>
+      </div>
+      <button class="cta qnext" onclick="nextQ(2)">CONTINUE →</button>
+    </div>
+
+    <div class="quiz-step" id="qs2">
+      <div class="quiz-q">HOW MUCH TIME DO YOU HAVE?</div>
+      <div class="quiz-sub">Be realistic. Consistency beats intensity every time.</div>
+      <div class="qopts">
+        <div class="qopt" onclick="selectOpt(this,2,'3')"><div class="qopt-icon" style="background:var(--greenbg)">📅</div><div class="qopt-txt"><div class="qo-title">3 Days a Week</div><div class="qo-sub">Compact, efficient sessions</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,2,'5')"><div class="qopt-icon" style="background:var(--gold3)">📆</div><div class="qopt-txt"><div class="qo-title">4–5 Days a Week</div><div class="qo-sub">Balanced split training</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,2,'6')"><div class="qopt-icon" style="background:var(--redbg)">🔥</div><div class="qopt-txt"><div class="qo-title">6 Days a Week</div><div class="qo-sub">Full commitment mode</div></div></div>
+      </div>
+      <button class="cta qnext" onclick="nextQ(3)">CONTINUE →</button>
+    </div>
+
+    <div class="quiz-step" id="qs3">
+      <div class="quiz-q">WHAT INSPIRES YOU MOST?</div>
+      <div class="quiz-sub">Your motivation shapes the style of athlete you'll train like.</div>
+      <div class="qopts">
+        <div class="qopt" onclick="selectOpt(this,3,'cr')"><div class="qopt-icon" style="background:var(--gold3)">🏆</div><div class="qopt-txt"><div class="qo-title">Winning & Competing</div><div class="qo-sub">Always the best on the field</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,3,'serena')"><div class="qopt-icon" style="background:var(--redbg)">💥</div><div class="qopt-txt"><div class="qo-title">Pushing Through Limits</div><div class="qo-sub">More powerful than yesterday</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,3,'ek')"><div class="qopt-icon" style="background:var(--greenbg)">🧘</div><div class="qopt-txt"><div class="qo-title">Discipline & Consistency</div><div class="qo-sub">Small steps, long journey</div></div></div>
+        <div class="qopt" onclick="selectOpt(this,3,'thor')"><div class="qopt-icon" style="background:var(--bluebg)">🏔️</div><div class="qopt-txt"><div class="qo-title">Pure Raw Power</div><div class="qo-sub">Strength is everything</div></div></div>
+      </div>
+      <button class="cta qnext" onclick="showResult()">SEE MY MATCH →</button>
+    </div>
+
+    <div class="quiz-step" id="qs-result">
+      <div class="quiz-result">
+        <div class="qr-match" id="qr-emoji"></div>
+        <div class="qr-label">Your Perfect Match</div>
+        <div class="qr-name" id="qr-name"></div>
+        <div class="qr-tags" id="qr-tags"></div>
+        <div class="qr-desc" id="qr-desc"></div>
+        <button class="cta" id="qr-cta" onclick="">VIEW FULL PROGRAM →</button>
+        <button class="cta2" style="margin-top:10px" onclick="resetQuiz()">Retake the Quiz</button>
+      </div>
+    </div>
+  </div>
+  <div class="bnav">
+    <div class="ni" onclick="show('s-home');setNav('home')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+    <div class="ni active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Quiz</span></div>
+    <div class="ni" onclick="show('s-progress');setNav('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Progress</span></div>
+    <div class="ni" onclick="show('s-progress');setNav('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
+  </div>
+</div>
+
+<!-- ══════════ PROGRESS ══════════ -->
+<div id="s-progress" class="screen">
+  <div class="hdr">
+    <div class="hdr-logo">ATHLÈTE</div>
+    <div class="hdr-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+  </div>
+  <div class="prog-wrap">
+    <div class="p-greeting">
+      <div class="p-week">Week 3 of 12 · Ronaldo Program</div>
+      <div class="p-name">KEEP<br>GOING <span>ALEX</span></div>
+    </div>
+
+    <div class="sum-grid">
+      <div class="sum-card"><div class="sum-icon">🔥</div><div class="sum-v" style="color:var(--redtext)">18</div><div class="sum-l">Sessions Completed</div><div class="sum-delta delta-up">+3 this week</div></div>
+      <div class="sum-card"><div class="sum-icon">⏱️</div><div class="sum-v">34h</div><div class="sum-l">Total Training Time</div><div class="sum-delta delta-up">↑ 12% vs last wk</div></div>
+      <div class="sum-card"><div class="sum-icon">⚡</div><div class="sum-v" style="color:var(--gold)">12</div><div class="sum-l">Day Streak</div><div class="sum-delta delta-up">Personal best!</div></div>
+      <div class="sum-card"><div class="sum-icon">🏋️</div><div class="sum-v">4.2T</div><div class="sum-l">Total Volume Lifted</div><div class="sum-delta delta-up">↑ 8% this week</div></div>
+    </div>
+
+    <div class="active-prog" onclick="show('s-detail');openDetail('ronaldo')">
+      <div class="ap-label">Active Program</div>
+      <div class="ap-name">CRISTIANO RONALDO</div>
+      <div class="ap-bar"><div class="ap-fill" style="width:25%"></div></div>
+      <div class="ap-pct">Week <span class="ap-week">3</span> of 12 · 25% complete</div>
+    </div>
+
+    <div class="sec-title">Weekly Sessions</div>
+    <div class="chart-card">
+      <div class="chart-title">Sessions per week</div>
+      <div class="chart-sub">Last 7 weeks · goal: 6/week</div>
+      <div class="bars" id="bar-chart"></div>
+    </div>
+
+    <div class="sec-title">This Month's Streak</div>
+    <div class="streak-row" id="streak-row"></div>
+
+    <div class="sec-title">Achievements</div>
+    <div class="achiev">
+      <div class="ach-item"><div class="ach-icon gold">🏆</div><div class="ach-info"><div class="ach-name">First Sweat</div><div class="ach-desc">Completed your first session</div></div></div>
+      <div class="ach-item"><div class="ach-icon gold">🔥</div><div class="ach-info"><div class="ach-name">On Fire</div><div class="ach-desc">7-day training streak</div></div></div>
+      <div class="ach-item"><div class="ach-icon gold">💪</div><div class="ach-info"><div class="ach-name">Ironclad</div><div class="ach-desc">Lifted 1 tonne in a week</div></div></div>
+      <div class="ach-item" style="opacity:.5"><div class="ach-icon gray">🥇</div><div class="ach-info"><div class="ach-name">Champion</div><div class="ach-desc">Complete a full 12-week program</div></div><div class="ach-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+      <div class="ach-item" style="opacity:.5"><div class="ach-icon gray">⚡</div><div class="ach-info"><div class="ach-name">Ronaldo Mode</div><div class="ach-desc">Train 6 days in a row</div></div><div class="ach-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <div class="ni" onclick="show('s-home');setNav('home')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+    <div class="ni" onclick="show('s-quiz');setNav('quiz')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Quiz</span></div>
+    <div class="ni active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Progress</span></div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───
+const programs = {
+  ronaldo:{type:'muscle',initials:'CR',name:'CRISTIANO RONALDO',sport:'Football · Functional Strength & Conditioning',tagClass:'tag-muscle',tagText:'⚡ Muscle & Performance',weeks:'12',days:'6',level:'ADV',bio:"Cristiano Ronaldo's training philosophy is built around explosive speed, lean muscle, and relentless conditioning. This 12-week program mimics his actual off-season routine — combining heavy compound lifts, sprint intervals, and core stability sessions.",
+  sched:[{d:'01',n:'Upper Body Power',desc:'Chest · Shoulders · Triceps',t:'train'},{d:'02',n:'Sprint & Agility',desc:'Speed · Lateral Movement · Box Jumps',t:'train'},{d:'03',n:'Lower Body Strength',desc:'Squats · Deadlifts · Hamstrings',t:'train'},{d:'04',n:'Active Recovery',desc:'Mobility · Stretching · Light Swim',t:'rest'},{d:'05',n:'Full Body Circuit',desc:'HIIT · Functional Movement',t:'train'},{d:'06',n:'Core & Conditioning',desc:'Plank Circuit · Ab Work · Cardio',t:'train'},{d:'07',n:'Rest Day',desc:'Full recovery',t:'rest'}],
+  meals:[{time:'Breakfast · 7:00 AM',n:'Oat protein bowl + 4 egg whites',cal:'620 kcal',p:'52g',c:'68g',f:'12g'},{time:'Lunch · 12:30 PM',n:'Grilled chicken + quinoa + spinach',cal:'710 kcal',p:'68g',c:'55g',f:'18g'},{time:'Pre-Workout · 3:30 PM',n:'Banana + whey protein shake',cal:'320 kcal',p:'30g',c:'42g',f:'4g'},{time:'Dinner · 7:30 PM',n:'Salmon + sweet potato + broccoli',cal:'580 kcal',p:'48g',c:'44g',f:'16g'}]},
+  serena:{type:'loss',initials:'SW',name:'SERENA WILLIAMS',sport:'Tennis · Power, Agility & Fat Loss',tagClass:'tag-loss',tagText:'🔥 Fat Loss & Power',weeks:'10',days:'5',level:'INT',bio:"Serena's program focuses on burning fat while building athletic power. Built around HIIT, functional strength, and sport-specific agility drills. Expect intense 60-minute sessions that keep your heart rate elevated.",
+  sched:[{d:'01',n:'HIIT & Lower Body',desc:'Jump Squats · Lunges · Sprints',t:'train'},{d:'02',n:'Upper Body Strength',desc:'Push-Pull Circuit · Battle Ropes',t:'train'},{d:'03',n:'Active Recovery',desc:'Yoga · Light Walk · Foam Roll',t:'rest'},{d:'04',n:'Full Body Burn',desc:'Circuit Training · Plyometrics',t:'train'},{d:'05',n:'Agility & Footwork',desc:'Ladder Drills · Court Movements',t:'train'},{d:'06',n:'Long Cardio',desc:'45-min run + core finisher',t:'train'},{d:'07',n:'Rest',desc:'Recovery + meal prep',t:'rest'}],
+  meals:[{time:'Breakfast · 7:30 AM',n:'Greek yogurt + berries + flaxseeds',cal:'380 kcal',p:'28g',c:'36g',f:'10g'},{time:'Lunch · 1:00 PM',n:'Turkey wrap + avocado + greens',cal:'520 kcal',p:'44g',c:'38g',f:'16g'},{time:'Snack · 4:00 PM',n:'Apple + almond butter + protein shake',cal:'290 kcal',p:'22g',c:'30g',f:'12g'},{time:'Dinner · 7:00 PM',n:'Tilapia + steamed vegetables + rice',cal:'460 kcal',p:'44g',c:'42g',f:'8g'}]},
+  kipchoge:{type:'endurance',initials:'EK',name:'ELIUD KIPCHOGE',sport:'Marathon · World Record Endurance',tagClass:'tag-endurance',tagText:'🌿 Endurance & Stamina',weeks:'16',days:'6',level:'BEG',bio:"The world's greatest marathoner's program strips away ego and builds pure aerobic engine. Eliud's method focuses on easy, consistent mileage, one quality session per week, and the mental discipline of slowing down to go faster.",
+  sched:[{d:'01',n:'Easy Run',desc:'5–8 km conversational pace',t:'train'},{d:'02',n:'Strength & Core',desc:'Bodyweight circuit · Stability',t:'train'},{d:'03',n:'Tempo Run',desc:'4 km at comfortably hard pace',t:'train'},{d:'04',n:'Rest',desc:'Full rest or light walking',t:'rest'},{d:'05',n:'Intervals',desc:'6×1km repeats with 90s recovery',t:'train'},{d:'06',n:'Long Run',desc:'14–22 km at easy pace',t:'train'},{d:'07',n:'Rest',desc:'Sleep, hydrate, reflect',t:'rest'}],
+  meals:[{time:'Breakfast · 6:00 AM',n:'Ugali + whole milk + fruit',cal:'440 kcal',p:'18g',c:'78g',f:'8g'},{time:'Lunch · 12:00 PM',n:'Sukuma wiki + beans + brown rice',cal:'560 kcal',p:'24g',c:'88g',f:'10g'},{time:'Snack · 4:00 PM',n:'Banana + peanut butter toast',cal:'280 kcal',p:'10g',c:'44g',f:'9g'},{time:'Dinner · 7:00 PM',n:'Chicken stew + sweet potato',cal:'520 kcal',p:'42g',c:'58g',f:'12g'}]},
+  thor:{type:'muscle',initials:'HT',name:'HAFÞÓR BJÖRNSSON',sport:'Strongman · Maximum Mass Building',tagClass:'tag-muscle',tagText:'💪 Strength & Hypertrophy',weeks:'8',days:'4',level:'ADV',bio:"Based on the training principles of the World's Strongest Man, this program is pure mass and strength. Expect heavy deadlifts, loaded carries, and pressing variations — with more food than you've ever eaten.",
+  sched:[{d:'01',n:'Heavy Lower Body',desc:'Deadlift · Squat · Leg Press',t:'train'},{d:'02',n:'Heavy Upper Push',desc:'Overhead Press · Bench · Dips',t:'train'},{d:'03',n:'Rest',desc:'Full recovery — eat big',t:'rest'},{d:'04',n:'Heavy Pull Day',desc:'Barbell Row · Pull-Ups · Shrugs',t:'train'},{d:'05',n:'Strongman Day',desc:'Tire Flip · Farmers Walk · Yoke',t:'train'},{d:'06',n:'Rest',desc:'Full recovery',t:'rest'},{d:'07',n:'Rest',desc:'Mobility work',t:'rest'}],
+  meals:[{time:'Breakfast · 7:00 AM',n:'8 eggs + oats + whole milk + banana',cal:'1,200 kcal',p:'72g',c:'120g',f:'36g'},{time:'Lunch · 12:00 PM',n:'500g beef mince + rice + veg',cal:'1,100 kcal',p:'90g',c:'88g',f:'30g'},{time:'Pre-Workout · 3:00 PM',n:'Mass gainer shake + fruit',cal:'650 kcal',p:'50g',c:'90g',f:'8g'},{time:'Dinner · 8:00 PM',n:'Whole chicken + potatoes + salad',cal:'1,050 kcal',p:'95g',c:'74g',f:'32g'}]},
+  mayweather:{type:'loss',initials:'FM',name:'FLOYD MAYWEATHER',sport:'Boxing · Cut, Condition & Shred',tagClass:'tag-loss',tagText:'🥊 Fat Loss & Conditioning',weeks:'8',days:'6',level:'INT',bio:"The Money Team's approach to getting shredded: six days a week of boxing-style conditioning — heavy bag, jump rope, shadowboxing, and weighted circuits — designed to strip body fat while building lean functional muscle.",
+  sched:[{d:'01',n:'AM Run + Bag Work',desc:'5km + 6 rounds heavy bag',t:'train'},{d:'02',n:'Strength Circuit',desc:'Compound circuit · No rest',t:'train'},{d:'03',n:'Cardio & Jump Rope',desc:'30 min rope + shadowboxing',t:'train'},{d:'04',n:'Sparring / Pads',desc:'Speed work · Pad combos',t:'train'},{d:'05',n:'Core & Abs',desc:'Sit-up board · Obliques',t:'train'},{d:'06',n:'Long Cardio',desc:'60-min low-intensity bike',t:'train'},{d:'07',n:'Rest',desc:'Recovery + light mobility',t:'rest'}],
+  meals:[{time:'Breakfast · 6:00 AM',n:'Egg white omelette + wheat toast',cal:'420 kcal',p:'48g',c:'34g',f:'8g'},{time:'Lunch · 12:00 PM',n:'Grilled fish + brown rice + beans',cal:'540 kcal',p:'52g',c:'46g',f:'12g'},{time:'Snack · 4:30 PM',n:'Protein shake + rice cakes',cal:'260 kcal',p:'30g',c:'26g',f:'4g'},{time:'Dinner · 7:00 PM',n:'Turkey breast + salad + sweet potato',cal:'480 kcal',p:'56g',c:'40g',f:'8g'}]}
+};
+
+const exercises = [
+  {cat:'Compound · Upper Body',name:'BENCH PRESS',sets:4,reps:'8–10',rest:'90s',tip:'Keep shoulder blades retracted. Drive through the heels, elbows at 45°.'},
+  {cat:'Isolation · Shoulders',name:'OVERHEAD PRESS',sets:4,reps:'6–8',rest:'2min',tip:'Brace your core. Avoid flaring elbows; press the bar slightly back overhead.'},
+  {cat:'Compound · Back',name:'BARBELL ROW',sets:4,reps:'8–10',rest:'90s',tip:'Hinge at hips, keep spine neutral. Drive elbows to your hip, not behind.'},
+  {cat:'Core · Stability',name:'PLANK CIRCUIT',sets:3,reps:'60s',rest:'45s',tip:'Posterior pelvic tilt. Squeeze every muscle. Breathe steadily throughout.'},
+  {cat:'Explosive · Lower Body',name:'BOX JUMPS',sets:5,reps:'5',rest:'2min',tip:'Land softly with bent knees. Reset fully between reps — quality over speed.'},
+];
+
+let currentEx = 0;
+let currentProgId = 'ronaldo';
+let prevScreen = 's-home';
+let quizAnswers = [{},{},{},{}];
+let wsInterval = null;
+let wsElapsed = 0;
+let wsRestTimer = 90;
+let wsResting = false;
+
+// ─── SCREENS ───
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setNav(active){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+}
+function goBack(){
+  show(prevScreen);
+}
+
+// ─── HOME FILTER ───
+function filterCards(el, type){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.acard').forEach(c=>{
+    c.style.display=(type==='all'||c.dataset.type===type)?'flex':'none';
+  });
+}
+
+// ─── DETAIL ───
+function openDetail(id){
+  currentProgId = id;
+  const p = programs[id];
+  document.getElementById('d-initials').textContent = p.initials;
+  document.getElementById('d-hero-bg').className = 'prog-bg-'+p.type;
+  document.getElementById('d-letters').textContent = p.initials;
+  document.getElementById('d-tag').className = 'tag-pill '+p.tagClass;
+  document.getElementById('d-tag').textContent = p.tagText;
+  document.getElementById('d-name').textContent = p.name;
+  document.getElementById('d-sport').textContent = p.sport;
+  document.getElementById('d-weeks').textContent = p.weeks;
+  document.getElementById('d-days').textContent = p.days;
+  document.getElementById('d-level').textContent = p.level;
+  document.getElementById('d-bio').textContent = p.bio;
+  document.getElementById('d-sched').innerHTML = p.sched.map(d=>`
+    <div class="sday" onclick="startSession()">
+      <div class="dnum">${d.d}</div>
+      <div class="dinfo"><div class="dname">${d.n}</div><div class="ddesc">${d.desc}</div></div>
+      <div class="dbadge ${d.t==='train'?'train':'rest'}">${d.t==='train'?'Train':'Rest'}</div>
+    </div>`).join('');
+  document.getElementById('d-meals').innerHTML = p.meals.map(m=>`
+    <div class="meal">
+      <div class="meal-hdr"><div class="meal-time">${m.time}</div><div class="meal-cal">${m.cal}</div></div>
+      <div class="meal-name">${m.n}</div>
+      <div class="macros"><div class="mac">Protein <span>${m.p}</span></div><div class="mac">Carbs <span>${m.c}</span></div><div class="mac">Fat <span>${m.f}</span></div></div>
+    </div>`).join('');
+  prevScreen = document.querySelector('.screen.active').id || 's-home';
+  show('s-detail');
+}
+
+// ─── WORKOUT ───
+function startSession(){
+  currentEx = 0;
+  wsElapsed = 0;
+  if(wsInterval) clearInterval(wsInterval);
+  wsInterval = setInterval(()=>{
+    wsElapsed++;
+    const m = Math.floor(wsElapsed/60);
+    const s = wsElapsed%60;
+    document.getElementById('ws-time-elapsed').textContent = m+':'+(s<10?'0':'')+s+' elapsed';
+  },1000);
+  renderExercise();
+  show('s-workout');
+}
+
+function renderExercise(){
+  const ex = exercises[currentEx];
+  const pct = Math.round(((currentEx+1)/exercises.length)*100);
+  document.getElementById('ws-fill').style.width = pct+'%';
+  document.getElementById('ws-ex-label').textContent = 'Exercise '+(currentEx+1)+' of '+exercises.length;
+  document.getElementById('ex-cat').textContent = ex.cat;
+  document.getElementById('ex-name').textContent = ex.name;
+  document.getElementById('ex-sets-v').textContent = ex.sets;
+  document.getElementById('ex-reps-v').textContent = ex.reps;
+  document.getElementById('ex-rest-v').textContent = ex.rest;
+  document.getElementById('ex-tip').textContent = ex.tip;
+  document.getElementById('ws-prev-btn').style.opacity = currentEx===0?'0.3':'1';
+  document.getElementById('ws-next-btn').textContent = currentEx===exercises.length-1 ? 'FINISH SESSION ✓' : 'NEXT EXERCISE →';
+  const setsList = document.getElementById('ex-sets-list');
+  setsList.innerHTML = '';
+  for(let i=0;i<ex.sets;i++){
+    const row = document.createElement('div');
+    row.className='set-row';
+    row.innerHTML=`<span class="set-num">Set ${i+1}</span><span class="set-val">${ex.reps} reps ${i<2?'@ working weight':''}</span><div class="set-check" onclick="toggleSet(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+    setsList.appendChild(row);
+  }
+  startTimerDisplay(90);
+}
+
+function toggleSet(el){ el.classList.toggle('done'); }
+
+function startTimerDisplay(secs){
+  let t = secs;
+  const circ = 2*Math.PI*44;
+  const ring = document.getElementById('ws-ring');
+  const num = document.getElementById('ws-timer-num');
+  if(window._timerInterval) clearInterval(window._timerInterval);
+  window._timerInterval = setInterval(()=>{
+    if(t<=0){ clearInterval(window._timerInterval); return; }
+    t--;
+    const m=Math.floor(t/60), s=t%60;
+    num.textContent = m+':'+(s<10?'0':'')+s;
+    const offset = circ*(1-t/secs);
+    ring.style.strokeDashoffset = offset;
+  },1000);
+}
+
+function wsNav(dir){
+  const next = currentEx+dir;
+  if(next<0) return;
+  if(next>=exercises.length){ 
+    if(wsInterval) clearInterval(wsInterval);
+    if(window._timerInterval) clearInterval(window._timerInterval);
+    show('s-workout-done');
+    showWorkoutDone();
+    return;
+  }
+  currentEx=next;
+  renderExercise();
+}
+
+function showWorkoutDone(){
+  const s = document.getElementById('s-workout');
+  s.innerHTML = `<div style="padding:80px 22px;text-align:center">
+    <div style="font-size:64px;margin-bottom:16px">🏆</div>
+    <div style="font-family:'Bebas Neue';font-size:32px;letter-spacing:3px;margin-bottom:8px">SESSION COMPLETE</div>
+    <div style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:32px">Great work. Rest, refuel, and come back stronger.</div>
+    <button class="cta" onclick="show('s-progress');setNav('progress')">VIEW MY PROGRESS</button>
+    <button class="cta2" style="margin-top:10px" onclick="show('s-home');setNav('home')">Back to Home</button>
+  </div>`;
+  s.style.paddingBottom='0';
+  show('s-workout');
+}
+
+// ─── QUIZ ───
+function selectOpt(el, step, val){
+  el.closest('.qopts').querySelectorAll('.qopt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  quizAnswers[step] = val;
+}
+
+function nextQ(toStep){
+  document.querySelectorAll('.quiz-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('qs'+toStep).classList.add('active');
+  for(let i=0;i<=toStep;i++) document.getElementById('qd'+i).classList.add('done');
+}
+
+function showResult(){
+  const results = {
+    muscle:{emoji:'💪',name:'CRISTIANO RONALDO',desc:'Your drive for performance and muscle perfectly matches CR7\'s methodology. Explosive power, lean mass, and relentless conditioning — this program was built for athletes like you.',tags:['Muscle Building','Speed','Core Strength'],id:'ronaldo'},
+    loss:{emoji:'🔥',name:'SERENA WILLIAMS',desc:'You\'re built to burn. Serena\'s high-intensity, power-driven training style matches your goal of getting lean while staying strong and athletic.',tags:['Fat Loss','HIIT','Agility'],id:'serena'},
+    endurance:{emoji:'🌿',name:'ELIUD KIPCHOGE',desc:'Your consistency and discipline align with Eliud\'s philosophy: no days off, no ego, just steady progress. This program will build an engine that never quits.',tags:['Endurance','Stamina','Mental Edge'],id:'kipchoge'},
+  };
+  const goal = quizAnswers[0] || 'muscle';
+  const r = results[goal] || results.muscle;
+  document.getElementById('qr-emoji').textContent = r.emoji;
+  document.getElementById('qr-name').textContent = r.name;
+  document.getElementById('qr-desc').textContent = r.desc;
+  document.getElementById('qr-tags').innerHTML = r.tags.map(t=>`<span class="tag-pill tag-muscle">${t}</span>`).join('');
+  document.getElementById('qr-cta').onclick = ()=>{ openDetail(r.id); };
+  for(let i=0;i<4;i++) document.getElementById('qd'+i).classList.add('done');
+  document.querySelectorAll('.quiz-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('qs-result').classList.add('active');
+}
+
+function resetQuiz(){
+  quizAnswers=[{},{},{},{}];
+  for(let i=0;i<4;i++) document.getElementById('qd'+i).classList.remove('done');
+  document.getElementById('qd0').classList.add('done');
+  document.querySelectorAll('.quiz-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('qs0').classList.add('active');
+  document.querySelectorAll('.qopt').forEach(o=>o.classList.remove('selected'));
+}
+
+// ─── PROGRESS: BAR CHART ───
+(function buildChart(){
+  const data = [3,4,5,4,6,5,3];
+  const labels = ['W1','W2','W3','W4','W5','W6','W7'];
+  const max = 6;
+  const wrap = document.getElementById('bar-chart');
+  wrap.innerHTML = data.map((v,i)=>`
+    <div class="bar-col">
+      <div class="bar-bg">
+        <div class="bar-fill" style="height:${Math.round((v/max)*100)}%;background:${i===6?'var(--gold)':'rgba(201,168,76,0.35)'}"></div>
+      </div>
+      <div class="bar-lbl">${labels[i]}</div>
+    </div>`).join('');
+})();
+
+// ─── PROGRESS: STREAK ───
+(function buildStreak(){
+  const wrap = document.getElementById('streak-row');
+  const days = ['M','T','W','T','F','S','S','M','T','W','T','F','S','S','M','T','W','T','F','S','S','M','T','W','T','F','S','S'];
+  const statuses = ['done','done','done','done','skip','done','skip','done','done','done','done','done','skip','skip','done','done','done','skip','done','done','done','done','done','done','done','done','skip','today'];
+  wrap.innerHTML = days.map((d,i)=>`<div class="streak-day ${statuses[i]}">${d}</div>`).join('');
+})();
+</script>
+</body>
+</html>

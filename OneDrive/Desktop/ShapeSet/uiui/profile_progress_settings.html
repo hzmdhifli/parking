@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#171717;--surface:#1c1c1c;--surface2:#222;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
+  --gold:#c9a84c;--gold2:#e8c87a;--goldbg:rgba(201,168,76,0.12);--goldborder:rgba(201,168,76,0.25);
+  --text:#f0ede8;--muted:#888480;--dim:#4a4845;
+  --red:#e85c4a;--redbg:rgba(232,92,74,0.1);--redtext:#f07060;
+  --green:#5aad7e;--greenbg:rgba(90,173,126,0.1);--greentext:#6dc892;
+  --blue:#4a8fe8;--bluebg:rgba(74,143,232,0.1);--bluetext:#70aff5;
+  --r:14px;--rs:9px;--rxs:6px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding-bottom:80px;max-width:430px;margin:0 auto}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:52px 22px 18px}
+.hdr-title{font-family:'Bebas Neue';font-size:22px;letter-spacing:2.5px}
+.hdr-edit{font-size:12px;color:var(--gold);cursor:pointer;padding:6px 14px;border:1px solid var(--goldborder);border-radius:100px;transition:all .2s}
+.hdr-edit:hover{background:var(--goldbg)}
+
+/* ── AVATAR SECTION ── */
+.avatar-section{padding:0 22px 24px;display:flex;align-items:center;gap:18px}
+.avatar-ring{width:78px;height:78px;border-radius:50%;border:2px solid var(--gold);padding:3px;flex-shrink:0;position:relative}
+.avatar-inner{width:100%;height:100%;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:26px;letter-spacing:1px;color:var(--gold)}
+.avatar-badge{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center}
+.avatar-badge svg{width:10px;height:10px;color:#0a0a0a}
+.user-info{}
+.user-name{font-family:'Bebas Neue';font-size:26px;letter-spacing:2px;margin-bottom:2px}
+.user-tag{font-size:12px;color:var(--muted);margin-bottom:8px}
+.user-level{display:inline-flex;align-items:center;gap:5px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:100px;padding:4px 10px;font-size:10px;color:var(--gold2);font-weight:500;letter-spacing:.5px}
+
+/* ── XP BAR ── */
+.xp-wrap{margin:0 22px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.xp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.xp-label{font-size:11px;color:var(--muted)}
+.xp-val{font-size:11px;color:var(--gold);font-weight:500}
+.xp-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.xp-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:68%}
+.xp-sub{display:flex;justify-content:space-between;font-size:10px;color:var(--dim)}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{font-size:10px;font-weight:500;letter-spacing:1.8px;color:var(--dim);text-transform:uppercase;padding:0 22px;margin-bottom:10px}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 22px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 15px}
+.stat-icon{font-size:16px;margin-bottom:8px}
+.stat-val{font-family:'Bebas Neue';font-size:28px;letter-spacing:1px;line-height:1;margin-bottom:2px}
+.stat-lbl{font-size:11px;color:var(--muted)}
+.stat-delta{font-size:10px;font-weight:500;margin-top:6px;display:inline-block;padding:2px 7px;border-radius:100px}
+.d-up{background:var(--greenbg);color:var(--greentext)}
+.d-gold{background:var(--goldbg);color:var(--gold2)}
+.d-blue{background:var(--bluebg);color:var(--bluetext)}
+
+/* ── PROGRESS RING ── */
+.ring-wrap{padding:0 22px;margin-bottom:24px}
+.ring-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:18px}
+.ring-svg{flex-shrink:0}
+.ring-info{}
+.ring-title{font-size:13px;font-weight:500;margin-bottom:3px}
+.ring-sub{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.ring-meta{display:flex;gap:14px}
+.ring-m{font-size:11px;color:var(--muted)}
+.ring-m span{color:var(--text);font-weight:500}
+
+/* ── WEEKLY CHART ── */
+.chart-wrap{padding:0 22px;margin-bottom:24px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.chart-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.chart-title{font-size:13px;font-weight:500}
+.chart-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.chart-legend{display:flex;gap:10px}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.leg-dot{width:7px;height:7px;border-radius:50%}
+.bars{display:flex;align-items:flex-end;justify-content:space-between;height:72px;gap:5px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.bar-bg{width:100%;background:var(--bg3);border-radius:4px 4px 0 0;flex:1;position:relative;overflow:hidden;max-height:72px}
+.bar-fill{position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height .6s}
+.bar-lbl{font-size:9px;color:var(--muted)}
+
+/* ── STREAK ── */
+.streak-wrap{padding:0 22px;margin-bottom:24px}
+.streak-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.streak-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.streak-num{font-family:'Bebas Neue';font-size:32px;color:var(--gold);letter-spacing:2px;line-height:1}
+.streak-fire{font-size:11px;color:var(--muted);margin-top:2px}
+.streak-best{font-size:11px;color:var(--muted)}
+.streak-best span{color:var(--gold2);font-weight:500}
+.streak-days{display:flex;gap:5px}
+.sday{flex:1;height:32px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500}
+.sday.done{background:var(--goldbg);border:1px solid var(--goldborder);color:var(--gold2)}
+.sday.skip{background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
+.sday.today{background:var(--gold);color:#0a0a0a;font-weight:600}
+
+/* ── ACHIEVEMENTS ── */
+.ach-wrap{padding:0 22px;margin-bottom:24px}
+.ach-list{display:flex;flex-direction:column;gap:8px}
+.ach-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:13px 14px;display:flex;align-items:center;gap:12px}
+.ach-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ach-icon.gold{background:var(--goldbg);border:1px solid var(--goldborder)}
+.ach-icon.locked{background:var(--bg3);border:1px solid var(--border)}
+.ach-info{flex:1}
+.ach-name{font-size:13px;font-weight:500;margin-bottom:1px}
+.ach-desc{font-size:11px;color:var(--muted)}
+.ach-lock svg{width:14px;height:14px;color:var(--dim)}
+.ach-date{font-size:10px;color:var(--dim)}
+
+/* ── SETTINGS ── */
+.settings-wrap{padding:0 22px;margin-bottom:24px}
+.settings-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.setting-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
+.setting-row:last-child{border-bottom:none}
+.setting-row:hover{background:var(--surface2)}
+.setting-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.setting-icon svg{width:16px;height:16px}
+.si-gold{background:var(--goldbg)}
+.si-gold svg{color:var(--gold)}
+.si-blue{background:var(--bluebg)}
+.si-blue svg{color:var(--bluetext)}
+.si-green{background:var(--greenbg)}
+.si-green svg{color:var(--greentext)}
+.si-red{background:var(--redbg)}
+.si-red svg{color:var(--redtext)}
+.si-gray{background:var(--bg3)}
+.si-gray svg{color:var(--muted)}
+.setting-info{flex:1}
+.setting-title{font-size:13px;font-weight:500}
+.setting-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.setting-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.chevron svg{width:13px;height:13px;color:var(--dim)}
+.badge-count{background:var(--gold);color:#0a0a0a;font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px}
+
+/* Toggle switch */
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:10px;transition:background .2s;cursor:pointer}
+.toggle input:checked+.toggle-track{background:var(--gold)}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;pointer-events:none}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+
+/* ── DANGER ZONE ── */
+.danger-wrap{padding:0 22px;margin-bottom:10px}
+.danger-btn{width:100%;padding:14px;background:transparent;color:var(--redtext);border:1px solid rgba(232,92,74,0.25);border-radius:var(--r);font-size:13px;cursor:pointer;transition:all .2s}
+.danger-btn:hover{background:var(--redbg)}
+
+/* ── VERSION ── */
+.version{text-align:center;font-size:11px;color:var(--dim);padding:16px 0 8px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-title">MY PROFILE</div>
+  <div class="hdr-edit" onclick="toggleEdit()">Edit Profile</div>
+</div>
+
+<!-- AVATAR -->
+<div class="avatar-section">
+  <div class="avatar-ring">
+    <div class="avatar-inner">AX</div>
+    <div class="avatar-badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+  </div>
+  <div class="user-info">
+    <div class="user-name">ALEX</div>
+    <div class="user-tag">@alex_lifts · Member since Jan 2025</div>
+    <div class="user-level">⚡ Level 7 — Intermediate Athlete</div>
+  </div>
+</div>
+
+<!-- XP BAR -->
+<div class="xp-wrap">
+  <div class="xp-top">
+    <span class="xp-label">Level 7 → Level 8</span>
+    <span class="xp-val">3,400 / 5,000 XP</span>
+  </div>
+  <div class="xp-track"><div class="xp-fill"></div></div>
+  <div class="xp-sub"><span>1,600 XP to next level</span><span>68%</span></div>
+</div>
+
+<!-- STATS -->
+<div class="sec-lbl">Your Stats</div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">🔥</div>
+    <div class="stat-val" style="color:var(--redtext)">42</div>
+    <div class="stat-lbl">Sessions Done</div>
+    <div class="stat-delta d-up">+6 this month</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⚡</div>
+    <div class="stat-val" style="color:var(--gold)">18</div>
+    <div class="stat-lbl">Day Streak</div>
+    <div class="stat-delta d-gold">Personal best</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⏱️</div>
+    <div class="stat-val">76h</div>
+    <div class="stat-lbl">Total Training</div>
+    <div class="stat-delta d-blue">↑ 14% vs last mo.</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🏋️</div>
+    <div class="stat-val">9.4T</div>
+    <div class="stat-lbl">Volume Lifted</div>
+    <div class="stat-delta d-up">↑ 8% this week</div>
+  </div>
+</div>
+
+<!-- ACTIVE PROGRAM RING -->
+<div class="sec-lbl">Active Program</div>
+<div class="ring-wrap">
+  <div class="ring-card">
+    <svg class="ring-svg" width="80" height="80" viewBox="0 0 80 80">
+      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(201,168,76,0.1)" stroke-width="7"/>
+      <circle cx="40" cy="40" r="34" fill="none" stroke="#c9a84c" stroke-width="7"
+        stroke-dasharray="213.6" stroke-dashoffset="53.4"
+        stroke-linecap="round" transform="rotate(-90 40 40)"/>
+      <text x="40" y="36" text-anchor="middle" font-family="Bebas Neue" font-size="16" fill="#e8c87a" letter-spacing="1">75%</text>
+      <text x="40" y="50" text-anchor="middle" font-family="DM Sans" font-size="8" fill="#888480">done</text>
+    </svg>
+    <div class="ring-info">
+      <div class="ring-title">Cristiano Ronaldo Program</div>
+      <div class="ring-sub">Week 9 of 12 · Full Body Performance & Conditioning</div>
+      <div class="ring-meta">
+        <div class="ring-m">Week <span>9/12</span></div>
+        <div class="ring-m">Sessions <span>54/72</span></div>
+        <div class="ring-m">Left <span>3 wks</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WEEKLY SESSIONS CHART -->
+<div class="sec-lbl">Weekly Activity</div>
+<div class="chart-wrap">
+  <div class="chart-card">
+    <div class="chart-hdr">
+      <div><div class="chart-title">Sessions per week</div><div class="chart-sub">Last 7 weeks · goal 6/week</div></div>
+      <div class="chart-legend">
+        <div class="leg"><div class="leg-dot" style="background:var(--gold)"></div>Done</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--border2)"></div>Goal</div>
+      </div>
+    </div>
+    <div class="bars" id="bars"></div>
+  </div>
+</div>
+
+<!-- STREAK -->
+<div class="sec-lbl">This Week's Streak</div>
+<div class="streak-wrap">
+  <div class="streak-card">
+    <div class="streak-top">
+      <div>
+        <div class="streak-num">18 🔥</div>
+        <div class="streak-fire">day streak — keep it going</div>
+      </div>
+      <div style="text-align:right">
+        <div class="streak-best">Best streak</div>
+        <div class="streak-best" style="margin-top:2px">ever: <span>18 days</span></div>
+      </div>
+    </div>
+    <div class="streak-days">
+      <div class="sday done">Mo</div>
+      <div class="sday done">Tu</div>
+      <div class="sday done">We</div>
+      <div class="sday done">Th</div>
+      <div class="sday done">Fr</div>
+      <div class="sday skip">Sa</div>
+      <div class="sday today">Su</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="sec-lbl">Achievements</div>
+<div class="ach-wrap">
+  <div class="ach-list">
+    <div class="ach-item">
+      <div class="ach-icon gold">🏆</div>
+      <div class="ach-info"><div class="ach-name">First Sweat</div><div class="ach-desc">Completed your first session</div></div>
+      <div class="ach-date">Jan 12</div>
+    </div>
+    <div class="ach-item">
+      <div class="ach-icon gold">🔥</div>
+      <div class="ach-info"><div class="ach-name">On Fire</div><div class="ach-desc">7-day training streak</div></div>
+      <div class="ach-date">Feb 3</div>
+    </div>
+    <div class="ach-item">
+      <div class="ach-icon gold">💪</div>
+      <div class="ach-info"><div class="ach-name">Ironclad</div><div class="ach-desc">Lifted 1 tonne in a single week</div></div>
+      <div class="ach-date">Feb 18</div>
+    </div>
+    <div class="ach-item">
+      <div class="ach-icon gold">⚡</div>
+      <div class="ach-info"><div class="ach-name">Half Way There</div><div class="ach-desc">Completed 50% of a program</div></div>
+      <div class="ach-date">Mar 5</div>
+    </div>
+    <div class="ach-item" style="opacity:.45">
+      <div class="ach-icon locked">🥇</div>
+      <div class="ach-info"><div class="ach-name">Champion</div><div class="ach-desc">Complete a full 12-week program</div></div>
+      <div class="ach-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    </div>
+    <div class="ach-item" style="opacity:.45">
+      <div class="ach-icon locked">🌟</div>
+      <div class="ach-info"><div class="ach-name">Ronaldo Mode</div><div class="ach-desc">Train 6 days in a row</div></div>
+      <div class="ach-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="sec-lbl">Account</div>
+<div class="settings-wrap">
+  <div class="settings-group">
+    <div class="setting-row">
+      <div class="setting-icon si-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Personal Info</div><div class="setting-sub">Name, age, weight, height</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Fitness Goals</div><div class="setting-sub">Muscle building · Fat loss · Endurance</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Subscription</div><div class="setting-sub">ATHLÈTE Pro · Active</div></div>
+      <div class="setting-right"><div class="badge-count">PRO</div></div>
+    </div>
+  </div>
+
+  <div class="sec-lbl" style="padding-left:0;margin-top:16px">Preferences</div>
+  <div class="settings-group">
+    <div class="setting-row">
+      <div class="setting-icon si-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Units</div><div class="setting-sub">kg / lbs · cm / ft</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Rest Timer</div><div class="setting-sub">Auto-start between sets</div></div>
+      <div class="setting-right">
+        <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Notifications</div><div class="setting-sub">Workout reminders & streaks</div></div>
+      <div class="setting-right">
+        <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Dark Mode</div><div class="setting-sub">Always on</div></div>
+      <div class="setting-right">
+        <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Privacy</div><div class="setting-sub">Who can see your progress</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+  </div>
+
+  <div class="sec-lbl" style="padding-left:0;margin-top:16px">Support</div>
+  <div class="settings-group">
+    <div class="setting-row">
+      <div class="setting-icon si-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Help Center</div><div class="setting-sub">FAQs & how-to guides</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Send Feedback</div><div class="setting-sub">Help us improve ATHLÈTE</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-icon si-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="setting-info"><div class="setting-title">Terms & Privacy</div><div class="setting-sub">Legal & data policy</div></div>
+      <div class="setting-right"><div class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DANGER -->
+<div class="danger-wrap">
+  <button class="danger-btn">Log Out</button>
+</div>
+<div class="version">ATHLÈTE v2.1.0 · © 2025</div>
+
+<script>
+(function buildBars(){
+  const data=[3,5,4,6,5,6,4];
+  const labels=['W1','W2','W3','W4','W5','W6','W7'];
+  const max=6;
+  document.getElementById('bars').innerHTML=data.map((v,i)=>`
+    <div class="bar-col">
+      <div class="bar-bg">
+        <div class="bar-fill" style="height:${Math.round((v/max)*100)}%;background:${i===6?'var(--gold)':'rgba(201,168,76,0.3)'}"></div>
+      </div>
+      <div class="bar-lbl">${labels[i]}</div>
+    </div>`).join('');
+})();
+
+function toggleEdit(){
+  alert('Edit profile — connect this to your user data layer.');
+}
+</script>
+</body>
+</html>
